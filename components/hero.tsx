@@ -1,41 +1,99 @@
-export function Hero() {
-  return (
-    <section className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-6">
-      <div className="relative flex h-[min(58vw,20rem)] w-[min(58vw,20rem)] items-center justify-center">
-        <svg
-          className="enso pointer-events-none absolute inset-0 h-full w-full"
-          viewBox="0 0 100 100"
-          aria-hidden="true"
-        >
-          <circle cx="50" cy="50" r="36" pathLength="100" transform="rotate(-24 50 50)" />
-        </svg>
-        <p className="mu font-jp text-4xl text-paper/80 sm:text-5xl" aria-hidden="true">
-          無
-        </p>
-      </div>
+"use client";
 
-      <h1
-        className="rise font-display text-[clamp(2.6rem,8vw,6.4rem)] font-normal leading-none tracking-[0.08em] text-paper"
-        style={{ animationDelay: "0.7s" }}
+import { useRef, useState } from "react";
+
+const LINES = ["still nothing.", "you held it. nothing changed.", "ok that was something.", "n."];
+
+export function Hero() {
+  const hold = useRef<number | null>(null);
+  const [holding, setHolding] = useState(false);
+  const [egg, setEgg] = useState(false);
+  const [line, setLine] = useState(LINES[0]);
+
+  const triggerEgg = () => {
+    setLine(LINES[Math.floor(Math.random() * LINES.length)]);
+    setEgg(true);
+    setHolding(false);
+    window.setTimeout(() => setEgg(false), 2600);
+  };
+
+  const startHold = () => {
+    if (egg) return;
+    if (hold.current) window.clearTimeout(hold.current);
+    setHolding(true);
+    hold.current = window.setTimeout(() => {
+      hold.current = null;
+      triggerEgg();
+    }, 520);
+  };
+
+  const endHold = () => {
+    setHolding(false);
+    if (hold.current) {
+      window.clearTimeout(hold.current);
+      hold.current = null;
+    }
+  };
+
+  return (
+    <section className="relative z-10 px-6 pb-12 pt-28 text-center sm:px-10 sm:pb-14 sm:pt-32">
+      <button
+        type="button"
+        aria-label="NothingMoe mark"
+        onPointerDown={startHold}
+        onPointerUp={endHold}
+        onPointerLeave={endHold}
+        onPointerCancel={endHold}
+        className={`rise relative mx-auto inline-flex border-0 bg-transparent p-0 ${
+          holding ? "mark-holding" : ""
+        } ${egg ? "mark-egg" : ""}`}
       >
-        nothingmoe
+        <span className="pointer-events-none absolute inset-0 -z-10 rounded-[1.4rem] bg-[radial-gradient(circle,rgba(255,183,197,0.28),transparent_68%)] blur-xl" />
+        <img
+          src="/mark.png"
+          alt=""
+          width={72}
+          height={72}
+          draggable={false}
+          className="h-[4.5rem] w-[4.5rem] rounded-[1.35rem] shadow-[0_12px_40px_rgba(0,0,0,0.45)] select-none"
+        />
+        {egg ? (
+          <span className="egg-sparkle pointer-events-none absolute -right-1 -top-1 text-[10px] text-[#ffb7c5]">
+            ✦
+          </span>
+        ) : null}
+      </button>
+      {egg ? (
+        <p className="egg-line mt-3 font-sans text-[11px] tracking-[0.2em] text-muted uppercase">
+          {line}
+        </p>
+      ) : null}
+      <h1
+        className="rise mt-7 px-1 font-display text-[clamp(2.7rem,10vw,5.6rem)] font-bold leading-[1.12] tracking-[-0.045em] text-[#f2f2f2]"
+        style={{
+          animationDelay: "0.12s",
+          textShadow: "0 1px 0 rgba(255,255,255,0.35), 0 12px 40px rgba(0,0,0,0.35)",
+          backgroundImage: "linear-gradient(180deg, #ffffff 0%, #e8e8e8 55%, #bdbdbd 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          paddingBottom: "0.12em",
+        }}
+      >
+        NothingMoe
       </h1>
       <p
-        className="rise mt-6 font-sans text-[11px] tracking-[0.42em] text-muted uppercase sm:text-xs"
-        style={{ animationDelay: "1.05s" }}
+        className="rise mt-5 font-sans text-[11px] tracking-[0.32em] text-muted uppercase sm:text-xs"
+        style={{ animationDelay: "0.28s" }}
       >
-        nothinghereisdarkshit
+        nothing here is dog shit
       </p>
-
-      <a
-        href="#garden"
-        data-cursor="hover"
-        className="rise group mt-14 flex flex-col items-center gap-3 text-muted"
-        style={{ animationDelay: "1.5s" }}
+      <p
+        className="rise mx-auto mt-4 max-w-md font-sans text-[13px] leading-relaxed text-muted/85"
+        style={{ animationDelay: "0.42s" }}
       >
-        <span className="font-sans text-[10px] tracking-[0.38em] uppercase">enter</span>
-        <span className="h-10 w-px origin-top bg-faint transition-transform duration-700 group-hover:scale-y-125" />
-      </a>
+        That shady corner of the internet where the UI actually feels good.
+      </p>
     </section>
   );
 }

@@ -1,28 +1,20 @@
-# nothingmoe
+# NothingMoe
 
-Index for [nothingmoe.com](https://nothingmoe.com).
+[nothingmoe.com](https://nothingmoe.com)
 
-**nothinghereisdarkshit**
+**nothing here is dog shit**
 
-A quiet garden of immersive rooms. Otaku first. Cinema, later.
+That shady corner of the internet with anime sites that are modern, clean, immersive — and actually feel good to use.
 
-## Founders
+## Sites
 
-- [anikura.club](https://anikura.club)
-- [anilight.live](https://anilight.live)
-- [nekowatch.xyz](https://nekowatch.xyz)
+1. [anilight.live](https://anilight.live)
+2. [luna-stream.me](https://luna-stream.me)
+3. [anikura.club](https://anikura.club)
+4. [nekowatch.xyz](https://nekowatch.xyz)
 
-## Add a site
+Add the next one in `lib/sites.ts`.
 
-Edit `lib/sites.ts` and push. Vercel will rebuild.
+## Music
 
-## Local
-
-```bash
-npm install
-npm run dev
-```
-
-## Hosting
-
-Vercel, domain `nothingmoe.com`.
+BGM lives at `public/audio/bgm.mp3`. Tiny speaker bottom-right.

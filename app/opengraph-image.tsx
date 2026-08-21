@@ -1,10 +1,15 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
-export const alt = "nothingmoe — nothinghereisdarkshit";
+export const alt = "NothingMoe";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const bytes = await readFile(join(process.cwd(), "public/mark-256.png"));
+  const src = `data:image/png;base64,${bytes.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -15,32 +20,67 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0c0b0a",
-          color: "#ede8df",
-          letterSpacing: "0.18em",
+          background: "#050505",
+          position: "relative",
         }}
       >
-        <div style={{ fontSize: 42, fontFamily: "serif", opacity: 0.55 }}>無</div>
         <div
           style={{
-            marginTop: 28,
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            background:
+              "radial-gradient(ellipse 50% 45% at 50% 42%, rgba(255,183,197,0.10), transparent 70%)",
+          }}
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          width={96}
+          height={96}
+          alt=""
+          style={{
+            width: 96,
+            height: 96,
+            borderRadius: 22,
+            boxShadow: "0 18px 50px rgba(0,0,0,0.55)",
+          }}
+        />
+        <div
+          style={{
+            marginTop: 36,
+            display: "flex",
+            alignItems: "baseline",
+            color: "#f2f2f2",
             fontSize: 72,
-            fontFamily: "serif",
-            fontWeight: 400,
+            fontWeight: 700,
+            letterSpacing: "-0.05em",
+            lineHeight: 1,
           }}
         >
-          nothingmoe
+          NothingMoe
+          <span
+            style={{
+              marginLeft: 2,
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.02em",
+              color: "rgba(244,244,244,0.35)",
+            }}
+          >
+            .com
+          </span>
         </div>
         <div
           style={{
-            marginTop: 22,
-            fontSize: 22,
-            fontFamily: "sans-serif",
-            letterSpacing: "0.28em",
-            opacity: 0.55,
+            marginTop: 28,
+            fontSize: 18,
+            letterSpacing: "0.32em",
+            textTransform: "uppercase",
+            color: "rgba(244,244,244,0.38)",
           }}
         >
-          nothinghereisdarkshit
+          nothing here is dog shit
         </div>
       </div>
     ),
