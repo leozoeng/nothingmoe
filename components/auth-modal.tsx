@@ -44,6 +44,23 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
 
   const resetMessages = () => setError(null);
 
+  const friendlyAuthError = (message: string) => {
+    const lower = message.toLowerCase();
+    if (lower.includes("email not confirmed") || lower.includes("not verified")) {
+      return "Your email isn't verified yet — try again in a moment or contact support.";
+    }
+    if (lower.includes("rate limit") || lower.includes("too many")) {
+      return "Too many attempts — wait a minute and try again.";
+    }
+    if (lower.includes("invalid login credentials")) {
+      return "Wrong email or password.";
+    }
+    if (lower.includes("already registered") || lower.includes("already exists")) {
+      return "An account with this email already exists — try signing in.";
+    }
+    return message;
+  };
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     resetMessages();
@@ -58,23 +75,21 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
           throw new Error("Username must be 3–24 chars: letters, numbers, underscore");
         }
 
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              username: cleanUsername,
-              display_name: displayName.trim() || cleanUsername,
-            },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
+        const signupRes = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            username: cleanUsername,
+            displayName: displayName.trim() || cleanUsername,
+          }),
         });
 
-        if (signUpError) throw signUpError;
+        const signupBody = (await signupRes.json()) as { error?: string };
 
-        if (data.session) {
-          onSuccess();
-          return;
+        if (!signupRes.ok) {
+          throw new Error(signupBody.error ?? "Could not create account");
         }
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -95,7 +110,8 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
       if (signInError) throw signInError;
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setError(friendlyAuthError(message));
     } finally {
       setLoading(false);
     }
