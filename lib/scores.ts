@@ -38,6 +38,9 @@ export type Review = {
   isOwn?: boolean;
 };
 
+export const REVIEW_BODY_MIN = 3;
+export const REVIEW_BODY_MAX = 2000;
+
 export type ReviewPayload = {
   stars: number;
   score_ui: number;
@@ -46,6 +49,46 @@ export type ReviewPayload = {
   score_features: number;
   body: string;
 };
+
+export function parseReviewPayload(body: unknown): ReviewPayload | { error: string } {
+  if (!body || typeof body !== "object") {
+    return { error: "Invalid review data" };
+  }
+
+  const data = body as Record<string, unknown>;
+  const stars = Number(data.stars);
+  const score_ui = Math.round(Number(data.score_ui));
+  const score_ux = Math.round(Number(data.score_ux));
+  const score_catalog = Math.round(Number(data.score_catalog));
+  const score_features = Math.round(Number(data.score_features));
+  const text = typeof data.body === "string" ? data.body.trim() : "";
+
+  if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
+    return { error: "Pick a star rating from 1 to 5" };
+  }
+
+  const scores = [score_ui, score_ux, score_catalog, score_features];
+  if (!scores.every((n) => Number.isFinite(n) && n >= 1 && n <= 100)) {
+    return { error: "Scores must be between 1 and 100" };
+  }
+
+  if (text.length < REVIEW_BODY_MIN) {
+    return { error: `Review needs at least ${REVIEW_BODY_MIN} characters` };
+  }
+
+  if (text.length > REVIEW_BODY_MAX) {
+    return { error: `Review must be under ${REVIEW_BODY_MAX} characters` };
+  }
+
+  return {
+    stars,
+    score_ui,
+    score_ux,
+    score_catalog,
+    score_features,
+    body: text,
+  };
+}
 
 export function reviewToScores(review: Review): Scores {
   return {

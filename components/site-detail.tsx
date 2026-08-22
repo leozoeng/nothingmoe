@@ -297,6 +297,12 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
       return;
     }
 
+    const trimmedBody = body.trim();
+    if (trimmedBody.length < 3) {
+      setError("Review needs at least 3 characters");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -310,7 +316,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
           score_ux: scoreUx,
           score_catalog: scoreCatalog,
           score_features: scoreFeatures,
-          body,
+          body: trimmedBody,
         }),
       });
 
