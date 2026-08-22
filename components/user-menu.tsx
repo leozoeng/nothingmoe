@@ -31,24 +31,14 @@ export function UserMenu() {
           </button>
         </>
       ) : (
-        <>
-          <button
-            type="button"
-            onClick={() => openAuth("sign-in")}
-            className="action-chip action-chip-view !px-3 !py-2"
-          >
-            <span className="action-chip-shine" aria-hidden="true" />
-            <span>sign in</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => openAuth("sign-up")}
-            className="action-chip action-chip-open !px-3 !py-2"
-          >
-            <span className="action-chip-shine" aria-hidden="true" />
-            <span>sign up</span>
-          </button>
-        </>
+        <button
+          type="button"
+          onClick={() => openAuth("sign-in")}
+          className="action-chip action-chip-open !px-3.5 !py-2"
+        >
+          <span className="action-chip-shine" aria-hidden="true" />
+          <span>account</span>
+        </button>
       )}
     </div>
   );

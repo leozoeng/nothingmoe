@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthModalProps = {
@@ -18,14 +18,31 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) setMode(initialMode);
+  }, [open, initialMode]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
 
   if (!open) return null;
 
-  const resetMessages = () => {
-    setError(null);
-    setMessage(null);
-  };
+  const resetMessages = () => setError(null);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -41,7 +58,7 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
           throw new Error("Username must be 3–24 chars: letters, numbers, underscore");
         }
 
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -55,17 +72,17 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
 
         if (signUpError) throw signUpError;
 
+        if (data.session) {
+          onSuccess();
+          return;
+        }
+
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
 
-        if (signInError) {
-          setMessage("Account created. Check your email to confirm, then sign in.");
-          setMode("sign-in");
-          return;
-        }
-
+        if (signInError) throw signInError;
         onSuccess();
         return;
       }
@@ -85,37 +102,66 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="glass relative z-[1] w-full max-w-md rounded-2xl p-6 sm:p-7">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="font-sans text-[9px] tracking-[0.28em] text-faint uppercase">account</p>
-            <h2 className="mt-1 font-display text-[1.5rem] font-bold tracking-[-0.04em] text-chrome">
-              {mode === "sign-in" ? "sign in" : "create account"}
-            </h2>
-          </div>
+    <div className="auth-modal-root" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <button type="button" aria-label="Close" className="auth-modal-backdrop" onClick={onClose} />
+
+      <div className="auth-modal-panel">
+        <div className="auth-modal-glow" aria-hidden="true" />
+
+        <button type="button" onClick={onClose} className="auth-modal-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M6.4 5.3a1 1 0 0 0-1.4 1.4L10.6 12l-5.6 5.3a1 1 0 1 0 1.4 1.4L12 13.4l5.6 5.3a1 1 0 0 0 1.4-1.4L13.4 12l5.6-5.3a1 1 0 0 0-1.4-1.4L12 10.6 6.4 5.3Z"
+            />
+          </svg>
+        </button>
+
+        <div className="auth-modal-brand">
+          <img src="/mark.png" alt="" width={36} height={36} className="auth-modal-mark" />
+          <p className="auth-modal-kicker">nothingmoe</p>
+          <h2 id="auth-modal-title" className="auth-modal-title chrome-text">
+            {mode === "sign-in" ? "welcome back" : "join the ranking"}
+          </h2>
+          <p className="auth-modal-sub">
+            {mode === "sign-in"
+              ? "Sign in to review sites and boost your favorites."
+              : "Create an account to leave scores and reviews."}
+          </p>
+        </div>
+
+        <div className="auth-modal-tabs" role="tablist" aria-label="Account mode">
           <button
             type="button"
-            onClick={onClose}
-            className="font-sans text-[18px] leading-none text-muted transition-colors hover:text-chrome"
+            role="tab"
+            aria-selected={mode === "sign-in"}
+            className={`auth-modal-tab${mode === "sign-in" ? " is-active" : ""}`}
+            onClick={() => {
+              resetMessages();
+              setMode("sign-in");
+            }}
           >
-            ×
+            sign in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "sign-up"}
+            className={`auth-modal-tab${mode === "sign-up" ? " is-active" : ""}`}
+            onClick={() => {
+              resetMessages();
+              setMode("sign-up");
+            }}
+          >
+            sign up
           </button>
         </div>
 
-        <form onSubmit={submit} className="mt-6 space-y-4">
+        <form onSubmit={submit} className="auth-modal-form">
           {mode === "sign-up" ? (
-            <>
-              <label className="block space-y-1.5">
-                <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">
-                  username
-                </span>
+            <div className="auth-modal-fields auth-modal-fields-signup">
+              <label className="auth-field">
+                <span className="auth-field-label">username</span>
                 <input
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
@@ -125,10 +171,8 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
                   placeholder="your_handle"
                 />
               </label>
-              <label className="block space-y-1.5">
-                <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">
-                  display name
-                </span>
+              <label className="auth-field">
+                <span className="auth-field-label">display name</span>
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
@@ -137,11 +181,11 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
                   placeholder="optional"
                 />
               </label>
-            </>
+            </div>
           ) : null}
 
-          <label className="block space-y-1.5">
-            <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">email</span>
+          <label className="auth-field">
+            <span className="auth-field-label">email</span>
             <input
               type="email"
               value={email}
@@ -149,13 +193,12 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
               required
               autoComplete="email"
               className="auth-input"
+              placeholder="you@example.com"
             />
           </label>
 
-          <label className="block space-y-1.5">
-            <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">
-              password
-            </span>
+          <label className="auth-field">
+            <span className="auth-field-label">password</span>
             <input
               type="password"
               value={password}
@@ -164,29 +207,33 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
               minLength={8}
               autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
               className="auth-input"
+              placeholder="min. 8 characters"
             />
           </label>
 
-          {error ? <p className="font-sans text-[11px] text-[#ffb7c5]">{error}</p> : null}
-          {message ? <p className="font-sans text-[11px] text-chrome/70">{message}</p> : null}
+          {error ? (
+            <p className="auth-modal-error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
-          <button type="submit" disabled={loading} className="action-chip action-chip-open w-full justify-center">
+          <button type="submit" disabled={loading} className="auth-modal-submit">
             <span className="action-chip-shine" aria-hidden="true" />
-            <span>{loading ? "..." : mode === "sign-in" ? "sign in" : "sign up"}</span>
+            <span>{loading ? "one sec…" : mode === "sign-in" ? "sign in" : "create account"}</span>
           </button>
         </form>
 
-        <p className="mt-5 font-sans text-[11px] text-muted">
-          {mode === "sign-in" ? "no account?" : "already have one?"}{" "}
+        <p className="auth-modal-foot">
+          {mode === "sign-in" ? "New here?" : "Already ranked?"}{" "}
           <button
             type="button"
-            className="text-chrome/80 underline-offset-2 hover:text-chrome hover:underline"
+            className="auth-modal-foot-link"
             onClick={() => {
               resetMessages();
               setMode(mode === "sign-in" ? "sign-up" : "sign-in");
             }}
           >
-            {mode === "sign-in" ? "sign up" : "sign in"}
+            {mode === "sign-in" ? "Create an account" : "Sign in instead"}
           </button>
         </p>
       </div>
