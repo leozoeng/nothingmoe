@@ -2,7 +2,6 @@ import { Experience } from "@/components/experience";
 import { Hero } from "@/components/hero";
 import { MusicToggle } from "@/components/music-toggle";
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { SiteIndex } from "@/components/site-index";
 
 const jsonLd = {
@@ -20,7 +19,6 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <SiteHeader />
       <main className="flex-1">
         <Hero />
         <SiteIndex />

@@ -1,0 +1,51 @@
+import { createClient } from "@/lib/supabase/server";
+
+export type UserProfile = {
+  id: string;
+  username: string;
+  display_name: string;
+};
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  profile: UserProfile | null;
+  ownedSites: string[];
+};
+
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const [{ data: profile }, { data: owners }] = await Promise.all([
+    supabase
+      .from("nothingmoe_profiles")
+      .select("id, username, display_name")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase.from("nothingmoe_site_owners").select("site_domain").eq("user_id", user.id),
+  ]);
+
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    profile: profile ?? null,
+    ownedSites: (owners ?? []).map((row) => row.site_domain),
+  };
+}
+
+export async function isSiteOwner(userId: string, domain: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("nothingmoe_site_owners")
+    .select("site_domain")
+    .eq("user_id", userId)
+    .eq("site_domain", domain)
+    .maybeSingle();
+
+  return Boolean(data);
+}

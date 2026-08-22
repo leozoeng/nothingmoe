@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const SRC = "/audio/bgm.mp3";
-const BASE = 0.32;
+const VOLUME = 0.32;
 
 export function MusicToggle() {
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -12,43 +12,11 @@ export function MusicToggle() {
   useEffect(() => {
     const el = new Audio(SRC);
     el.loop = true;
-    el.volume = BASE;
+    el.volume = VOLUME;
     el.preload = "auto";
     audio.current = el;
 
-    let unlocked = false;
-
-    const start = async () => {
-      if (unlocked || !audio.current) return;
-      try {
-        await audio.current.play();
-        unlocked = true;
-        setOn(true);
-        cleanup();
-      } catch {
-        // wait for gesture
-      }
-    };
-
-    const onGesture = () => {
-      void start();
-    };
-
-    const cleanup = () => {
-      window.removeEventListener("pointerdown", onGesture);
-      window.removeEventListener("keydown", onGesture);
-      window.removeEventListener("touchstart", onGesture);
-      window.removeEventListener("wheel", onGesture);
-    };
-
-    void start();
-    window.addEventListener("pointerdown", onGesture, { passive: true });
-    window.addEventListener("keydown", onGesture);
-    window.addEventListener("touchstart", onGesture, { passive: true });
-    window.addEventListener("wheel", onGesture, { passive: true });
-
     return () => {
-      cleanup();
       el.pause();
       audio.current = null;
     };

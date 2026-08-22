@@ -1,13 +1,14 @@
 export type CategoryId = "japanese";
 
-export type Vibe = {
+export type Scores = {
   ui: number;
-  speed: number;
+  ux: number;
   catalog: number;
-  social: number;
+  features: number;
 };
 
 export type Site = {
+  slug: string;
   name: string;
   domain: string;
   href: string;
@@ -16,9 +17,15 @@ export type Site = {
   category: CategoryId;
   reason: string;
   line: string;
+  started: string;
   pros: string[];
   cons: string[];
-  vibe: Vibe;
+  /** Seed scores shown until community reviews exist */
+  seed: Scores;
+  /** Owner-customized banner image URL */
+  banner?: string | null;
+  /** Owner-written long description */
+  description?: string | null;
 };
 
 export const categoryMeta: { id: CategoryId; label: string; empty: string }[] = [
@@ -27,6 +34,7 @@ export const categoryMeta: { id: CategoryId; label: string; empty: string }[] = 
 
 export const sites: Site[] = [
   {
+    slug: "anilight",
     name: "AniLight",
     domain: "anilight.live",
     href: "https://anilight.live",
@@ -35,6 +43,7 @@ export const sites: Site[] = [
     category: "japanese",
     reason: "cinematic discovery",
     line: "Premium anime discovery — trending, seasonal, and top rated with cinematic visuals.",
+    started: "2024",
     pros: [
       "Premium discovery platform",
       "Trending & seasonal picks",
@@ -42,9 +51,10 @@ export const sites: Site[] = [
       "Cinematic visuals",
     ],
     cons: ["Depends on scraped sources"],
-    vibe: { ui: 96, speed: 94, catalog: 82, social: 68 },
+    seed: { ui: 96, ux: 94, catalog: 82, features: 68 },
   },
   {
+    slug: "luna",
     name: "Luna",
     domain: "luna-stream.me",
     href: "https://luna-stream.me",
@@ -52,6 +62,7 @@ export const sites: Site[] = [
     category: "japanese",
     reason: "sync and stream",
     line: "Watch anime in HD — subs, dubs, new episodes as they air, with AniList sync so the watchlist follows you.",
+    started: "2025",
     pros: [
       "HD sub & dub",
       "New episodes as they air",
@@ -59,9 +70,10 @@ export const sites: Site[] = [
       "Movies, OVAs, full seasons",
     ],
     cons: ["No community hub yet"],
-    vibe: { ui: 89, speed: 87, catalog: 93, social: 66 },
+    seed: { ui: 89, ux: 87, catalog: 93, features: 66 },
   },
   {
+    slug: "anikura",
     name: "Anikura",
     domain: "anikura.club",
     href: "https://anikura.club",
@@ -70,6 +82,7 @@ export const sites: Site[] = [
     category: "japanese",
     reason: "shelves + social",
     line: "Watch and discover anime — seasonal picks, curated catalogs, genres, and watch together.",
+    started: "2026",
     pros: [
       "Large catalog",
       "Curated catalogs",
@@ -77,9 +90,11 @@ export const sites: Site[] = [
       "Complex social system",
     ],
     cons: ["Heavier first load"],
-    vibe: { ui: 93, speed: 78, catalog: 90, social: 95 },
+    seed: { ui: 93, ux: 78, catalog: 90, features: 95 },
+    banner: "/sites/anikura-banner.png",
   },
   {
+    slug: "nekowatch",
     name: "NekoWatch",
     domain: "nekowatch.xyz",
     href: "https://nekowatch.xyz",
@@ -88,6 +103,7 @@ export const sites: Site[] = [
     category: "japanese",
     reason: "tracks your addiction",
     line: "Track and discover anime on NekoWatch.",
+    started: "2024",
     pros: [
       "Track what you watch",
       "Discover new shows",
@@ -95,9 +111,11 @@ export const sites: Site[] = [
       "Watchlist that sticks",
     ],
     cons: ["Still growing the catalog"],
-    vibe: { ui: 91, speed: 86, catalog: 74, social: 80 },
+    seed: { ui: 91, ux: 86, catalog: 74, features: 80 },
   },
 ];
+
+export const VALID_DOMAINS = sites.map((site) => site.domain);
 
 export function sitesByCategory() {
   return categoryMeta.map((category) => ({
@@ -108,4 +126,8 @@ export function sitesByCategory() {
 
 export function siteByDomain(domain: string) {
   return sites.find((site) => site.domain === domain);
+}
+
+export function siteBySlug(slug: string) {
+  return sites.find((site) => site.slug === slug);
 }

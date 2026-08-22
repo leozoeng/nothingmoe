@@ -2,61 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { applyBoost, canBoost, readBoosts, writeBoosts } from "@/lib/boosts";
-import { sitesByCategory, type Site, type Vibe } from "@/lib/sites";
+import {
+  computeStats,
+  mergeScores,
+  type ReviewStats,
+} from "@/lib/scores";
+import { sitesByCategory, type Site } from "@/lib/sites";
+import { ScoreMeters } from "./score-meters";
+import { ActionChip } from "./site-detail";
 import { Reveal } from "./reveal";
-
-const VIBE_LABELS: { key: keyof Vibe; label: string }[] = [
-  { key: "ui", label: "ui" },
-  { key: "speed", label: "speed" },
-  { key: "catalog", label: "catalog" },
-  { key: "social", label: "social" },
-];
-
-function DiscordMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"
-      />
-    </svg>
-  );
-}
-
-function OpenMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"
-      />
-    </svg>
-  );
-}
-
-function ActionChip({
-  href,
-  label,
-  variant = "open",
-}: {
-  href: string;
-  label: string;
-  variant?: "open" | "discord";
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer noopener"
-      onClick={(event) => event.stopPropagation()}
-      className={`action-chip ${variant === "discord" ? "action-chip-discord" : "action-chip-open"}`}
-    >
-      <span className="action-chip-shine" aria-hidden="true" />
-      {variant === "discord" ? <DiscordMark /> : <OpenMark />}
-      <span>{label}</span>
-    </a>
-  );
-}
 
 function Trophy({ hot = false }: { hot?: boolean }) {
   return (
@@ -73,61 +27,19 @@ function Trophy({ hot = false }: { hot?: boolean }) {
   );
 }
 
-function ProsCons({ site }: { site: Site }) {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <ul className="space-y-1.5">
-        {site.pros.map((pro) => (
-          <li
-            key={pro}
-            className="flex items-start gap-2 font-sans text-[11px] leading-snug text-chrome/70"
-          >
-            <span className="mt-[1px] select-none text-[10px] text-chrome/30">+</span>
-            <span>{pro}</span>
-          </li>
-        ))}
-      </ul>
-      <ul className="space-y-1.5">
-        {site.cons.map((con) => (
-          <li
-            key={con}
-            className="flex items-start gap-2 font-sans text-[11px] leading-snug text-muted"
-          >
-            <span className="mt-[1px] select-none text-[10px] text-chrome/20">−</span>
-            <span>{con}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+function VibeMeters({
+  site,
+  stats,
+  active,
+}: {
+  site: Site;
+  stats?: ReviewStats;
+  active: boolean;
+}) {
+  const merged = mergeScores(site.seed, stats ?? computeStats([]));
+  const label = stats && stats.count > 0 ? "community avg" : "scores";
 
-function VibeMeters({ vibe, active }: { vibe: Vibe; active: boolean }) {
-  return (
-    <div className="space-y-2">
-      <p className="font-sans text-[9px] tracking-[0.24em] text-faint uppercase">vibe</p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        {VIBE_LABELS.map(({ key, label }) => (
-          <div key={key} className="space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">
-                {label}
-              </span>
-              <span className="font-sans text-[10px] tabular-nums text-chrome/55">
-                {vibe[key]}
-              </span>
-            </div>
-            <div className="h-[3px] overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="vibe-fill h-full rounded-full bg-gradient-to-r from-white/25 to-white/70"
-                style={{ width: active ? `${vibe[key]}%` : "0%" }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <ScoreMeters scores={merged} active={active} label={label} />;
 }
 
 function BoostButton({
@@ -173,6 +85,7 @@ function SiteRow({
   selected,
   boostCount,
   boostLocked,
+  reviewStats,
   onToggle,
   onPick,
   onBoost,
@@ -184,6 +97,7 @@ function SiteRow({
   selected: boolean;
   boostCount: number;
   boostLocked: boolean;
+  reviewStats?: ReviewStats;
   onToggle: () => void;
   onPick: () => void;
   onBoost: (domain: string) => void;
@@ -203,7 +117,7 @@ function SiteRow({
         <span className="pointer-events-none absolute inset-0 rank-spotlight" aria-hidden="true" />
         <span
           className={`rank-num w-5 shrink-0 font-sans text-[9px] tracking-[0.16em] ${
-            first ? "text-[#c9a227]" : "text-muted"
+            first ? "rank-num-gold" : "text-muted"
           }`}
         >
           {String(index + 1).padStart(2, "0")}
@@ -253,9 +167,9 @@ function SiteRow({
           <div className="fold-inner" inert={open ? undefined : true}>
             <div className="mx-2.5 mb-2.5 space-y-3.5 border-t border-white/[0.06] px-1 pb-1 pt-2.5 sm:mx-3">
               <p className="font-sans text-[11px] leading-relaxed text-muted">{site.line}</p>
-              <VibeMeters vibe={site.vibe} active={open} />
-              <ProsCons site={site} />
+              <VibeMeters site={site} stats={reviewStats} active={open} />
               <div className="flex flex-wrap gap-2 pt-0.5">
+                <ActionChip href={`/site/${site.slug}`} label="view page" variant="view" external={false} />
                 <ActionChip href={site.href} label="open" variant="open" />
                 {site.discord ? (
                   <ActionChip href={site.discord} label="discord" variant="discord" />
@@ -300,9 +214,11 @@ function ComparePanel({ a, b, onClear }: { a: Site; b: Site; onClear: () => void
                 <p className="truncate font-sans text-[10px] text-muted">{site.reason}</p>
               </div>
             </div>
-            <VibeMeters vibe={site.vibe} active />
-            <ProsCons site={site} />
-            <ActionChip href={site.href} label="open" variant="open" />
+            <VibeMeters site={site} active />
+            <div className="flex flex-wrap gap-2">
+              <ActionChip href={`/site/${site.slug}`} label="view page" variant="view" external={false} />
+              <ActionChip href={site.href} label="open" variant="open" />
+            </div>
           </div>
         ))}
       </div>
@@ -321,10 +237,30 @@ export function SiteIndex() {
     voted: [] as string[],
     counts: {} as Record<string, number>,
   }));
+  const [reviewStats, setReviewStats] = useState<Record<string, ReviewStats>>({});
 
   useEffect(() => {
     setBoosts(readBoosts());
   }, []);
+
+  useEffect(() => {
+    if (!openId) return;
+
+    let cancelled = false;
+    void fetch(`/api/reviews/${encodeURIComponent(openId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { stats: ReviewStats } | null) => {
+        if (!cancelled && data?.stats) {
+          setReviewStats((current) =>
+            current[openId] ? current : { ...current, [openId]: data.stats },
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openId]);
 
   const toggleOpen = (domain: string) => {
     setOpenId((current) => (current === domain ? null : domain));
@@ -396,6 +332,7 @@ export function SiteIndex() {
                 selected={picked.includes(site.domain)}
                 boostCount={boosts.counts[site.domain] ?? 0}
                 boostLocked={!canBoost(site.domain, boosts)}
+                reviewStats={reviewStats[site.domain]}
                 onToggle={() => toggleOpen(site.domain)}
                 onPick={() => pick(site.domain)}
                 onBoost={onBoost}
