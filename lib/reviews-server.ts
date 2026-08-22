@@ -87,7 +87,23 @@ export async function fetchReviews(
   if (error) throw new Error(error.message);
 
   const reviews = ((data ?? []) as RawReview[]).map((row) => mapReview(row, currentUserId));
-  const userReview = reviews.find((review) => review.isOwn) ?? null;
+  let userReview = reviews.find((review) => review.isOwn) ?? null;
+
+  if (currentUserId && !userReview) {
+    const { data: ownRow, error: ownError } = await supabase
+      .from("nothingmoe_reviews")
+      .select(
+        "id, site_domain, user_id, stars, score_ui, score_ux, score_catalog, score_features, body, created_at, nothingmoe_profiles(display_name, username), nothingmoe_review_responses(id, body, created_at, updated_at)",
+      )
+      .eq("site_domain", domain)
+      .eq("user_id", currentUserId)
+      .maybeSingle();
+
+    if (ownError) throw new Error(ownError.message);
+    if (ownRow) {
+      userReview = mapReview(ownRow as RawReview, currentUserId);
+    }
+  }
 
   return {
     reviews,
@@ -96,7 +112,18 @@ export async function fetchReviews(
   };
 }
 
-export async function submitReview(domain: string, userId: string, payload: ReviewPayload) {
+export class ReviewConflictError extends Error {
+  constructor(message = "You already have a review for this site. Refresh and update it instead.") {
+    super(message);
+    this.name = "ReviewConflictError";
+  }
+}
+
+export async function submitReview(
+  domain: string,
+  userId: string,
+  payload: ReviewPayload,
+): Promise<{ created: boolean }> {
   if (!VALID_DOMAINS.includes(domain)) {
     throw new Error("Invalid site");
   }
@@ -106,23 +133,49 @@ export async function submitReview(domain: string, userId: string, payload: Revi
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("nothingmoe_reviews").insert({
-    site_domain: domain,
-    user_id: userId,
+  const row = {
     stars: payload.stars,
     score_ui: payload.score_ui,
     score_ux: payload.score_ux,
     score_catalog: payload.score_catalog,
     score_features: payload.score_features,
     body: payload.body.trim(),
+  };
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("nothingmoe_reviews")
+    .select("id")
+    .eq("site_domain", domain)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (lookupError) throw new Error(lookupError.message);
+
+  if (existing?.id) {
+    const { error } = await supabase
+      .from("nothingmoe_reviews")
+      .update(row)
+      .eq("id", existing.id)
+      .eq("user_id", userId);
+
+    if (error) throw new Error(error.message);
+    return { created: false };
+  }
+
+  const { error } = await supabase.from("nothingmoe_reviews").insert({
+    site_domain: domain,
+    user_id: userId,
+    ...row,
   });
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("You already reviewed this site");
+      throw new ReviewConflictError();
     }
     throw new Error(error.message);
   }
+
+  return { created: true };
 }
 
 export async function submitReviewResponse(reviewId: string, userId: string, body: string) {

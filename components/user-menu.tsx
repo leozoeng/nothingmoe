@@ -1,9 +1,14 @@
 "use client";
 
+import { siteByDomain } from "@/lib/sites";
 import { useAuth } from "./auth-provider";
 
 export function UserMenu() {
   const { user, loading, configured, openAuth, signOut } = useAuth();
+  const ownedSite =
+    user?.ownedSites
+      .map((domain) => siteByDomain(domain))
+      .find((site): site is NonNullable<typeof site> => site != null) ?? null;
 
   if (!configured) return null;
 
@@ -16,9 +21,24 @@ export function UserMenu() {
           <span className="hidden font-sans text-[10px] tracking-[0.08em] text-muted sm:inline">
             {user.profile?.display_name ?? user.email}
           </span>
-          {user.ownedSites.length > 0 ? (
-            <span className="rounded-full border border-white/12 bg-white/[0.04] px-2 py-1 font-sans text-[8px] tracking-[0.16em] text-chrome/70 uppercase">
-              owner
+          {ownedSite ? (
+            <span
+              className="inline-flex max-w-[11rem] items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] py-1 pr-2.5 pl-1 font-sans text-[9px] tracking-[0.04em] text-chrome/80"
+              title={`${ownedSite.name} owner`}
+            >
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#0a0a0a] ring-1 ring-white/10">
+                <img
+                  src={ownedSite.icon}
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="h-full w-full object-cover"
+                />
+              </span>
+              <span className="min-w-0 truncate">
+                <span className="font-medium text-chrome">{ownedSite.name}</span>
+                <span className="text-muted"> owner</span>
+              </span>
             </span>
           ) : null}
           <button

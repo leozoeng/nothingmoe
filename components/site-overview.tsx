@@ -1,7 +1,7 @@
 "use client";
 
 import { SiteScorePanel } from "./site-score-panel";
-import { SiteVerdict } from "./site-verdict";
+import { SiteFeatureList } from "./site-feature-list";
 import type { ReviewStats } from "@/lib/scores";
 import type { Scores } from "@/lib/sites";
 
@@ -9,20 +9,18 @@ export function SiteOverview({
   scores,
   stats,
   displayStars,
-  pros,
-  cons,
+  featureList,
 }: {
   scores: Scores;
   stats: ReviewStats;
   displayStars: number | null;
-  pros: string[];
-  cons: string[];
+  featureList: string[];
 }) {
   return (
-    <section className="site-overview" aria-label="Scores and verdict">
+    <section className="site-overview" aria-label="Community census and features">
       <SiteScorePanel compact scores={scores} stats={stats} displayStars={displayStars} />
-      <div className="site-overview-verdicts">
-        <SiteVerdict pros={pros} cons={cons} />
+      <div className="site-overview-features-wrap">
+        <SiteFeatureList features={featureList} />
       </div>
     </section>
   );

@@ -11,7 +11,7 @@ import {
 } from "@/lib/scores";
 import type { Site } from "@/lib/sites";
 import { getAnikuraDemoReviews } from "@/lib/demo-reviews";
-import { useDemoMode } from "@/lib/demo-mode";
+import { useDemoMode, useOwnerPreview } from "@/lib/demo-mode";
 import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
@@ -228,7 +228,10 @@ function ReviewCard({
 export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner: boolean }) {
   const { user, openAuth } = useAuth();
   const demoMode = useDemoMode();
+  const ownerPreview = useOwnerPreview();
   const [site, setSite] = useState(initialSite);
+  const canEdit = isOwner || ownerPreview;
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const isAnikuraDemo = demoMode && site.domain === "anikura.club";
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>(() => computeStats([]));
@@ -284,6 +287,20 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
     void loadReviews();
   }, [loadReviews]);
 
+  useEffect(() => {
+    if (ownerPreview) setCustomizeOpen(true);
+  }, [ownerPreview]);
+
+  useEffect(() => {
+    if (!userReview) return;
+    setStars(userReview.stars);
+    setScoreUi(userReview.score_ui);
+    setScoreUx(userReview.score_ux);
+    setScoreCatalog(userReview.score_catalog);
+    setScoreFeatures(userReview.score_features);
+    setBody(userReview.body);
+  }, [userReview]);
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -328,15 +345,15 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
       };
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Failed to submit review");
+        throw new Error(data.error ?? "Failed to save review");
       }
 
       setReviews(data.reviews ?? []);
       setStats(data.stats ?? computeStats([]));
       setUserReview(data.userReview ?? null);
-      setBody("");
+      setBody(trimmedBody);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit review");
+      setError(err instanceof Error ? err.message : "Failed to save review");
     } finally {
       setSubmitting(false);
     }
@@ -376,6 +393,16 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
             </div>
           </div>
           <div className="site-page-actions">
+            {canEdit ? (
+              <button
+                type="button"
+                onClick={() => setCustomizeOpen((value) => !value)}
+                className="action-chip action-chip-view"
+              >
+                <span className="action-chip-shine" aria-hidden="true" />
+                <span>{customizeOpen ? "close" : "customize page"}</span>
+              </button>
+            ) : null}
             <ActionChip href={site.href} label="open" variant="open" />
             {site.discord ? (
               <ActionChip href={site.discord} label="discord" variant="discord" />
@@ -387,24 +414,27 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
       <div className="site-page-body">
         <p className="site-page-tagline">{site.line}</p>
 
-        <SiteOverview
-          scores={displayScores}
-          stats={stats}
-          displayStars={displayStars}
-          pros={site.pros}
-          cons={site.cons}
-        />
-
         {site.description ? (
           <section className="site-page-about">
             <p className="site-page-about-text">{site.description}</p>
           </section>
         ) : null}
 
-        {isOwner ? (
+        <SiteOverview
+          scores={displayScores}
+          stats={stats}
+          displayStars={displayStars}
+          featureList={site.featureList}
+        />
+
+        {canEdit && customizeOpen ? (
           <div className="site-page-main">
             <div className="site-page-content">
-              <SiteOwnerPanel site={site} onSaved={setSite} />
+              <SiteOwnerPanel
+                site={site}
+                onSaved={setSite}
+                onClose={() => setCustomizeOpen(false)}
+              />
             </div>
           </div>
         ) : null}
@@ -429,7 +459,9 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
           </div>
 
           <div className="site-page-review-compose">
-            {!userReview ? <p className="site-page-kicker">write a review</p> : null}
+            <p className="site-page-kicker">
+              {user && userReview ? "edit your review" : "write a review"}
+            </p>
 
             {!user ? (
               <div className="site-page-review-form">
@@ -442,15 +474,6 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
                   <span className="action-chip-shine" aria-hidden="true" />
                   <span>sign in to review</span>
                 </button>
-              </div>
-            ) : userReview ? (
-              <div className="site-page-your-review">
-                <p className="site-page-your-review-label">your review</p>
-                <ReviewCard
-                  review={userReview}
-                  isOwner={false}
-                  onResponded={() => void loadReviews()}
-                />
               </div>
             ) : (
               <form onSubmit={submit} className="site-page-review-form">
@@ -479,7 +502,15 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
 
                 <button type="submit" disabled={submitting} className="action-chip action-chip-open">
                   <span className="action-chip-shine" aria-hidden="true" />
-                  <span>{submitting ? "posting..." : "post review"}</span>
+                  <span>
+                    {submitting
+                      ? userReview
+                        ? "updating..."
+                        : "posting..."
+                      : userReview
+                        ? "update review"
+                        : "post review"}
+                  </span>
                 </button>
               </form>
             )}
@@ -493,7 +524,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
                 <ReviewCard
                   key={review.id}
                   review={review}
-                  isOwner={isOwner}
+                  isOwner={canEdit}
                   onResponded={() => void loadReviews()}
                 />
               ))}

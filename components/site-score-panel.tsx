@@ -139,13 +139,16 @@ export function SiteScorePanel({
   const activeLabel = hovered
     ? SCORE_LABELS.find((item) => item.key === hovered)?.label
     : "overall";
-  const label = stats.count > 0 ? "community avg" : "scores";
+  const label = "community census";
 
   if (compact) {
     return (
       <div className="site-overview-col site-overview-scores">
         <p className="site-overview-label">{label}</p>
-        <div className={`score-block ${mounted ? "score-block-ready" : ""}`} aria-label="Ratings and scores">
+        <div
+          className={`score-block ${mounted ? "score-block-ready" : ""}`}
+          aria-label="Community census"
+        >
           <div className="score-block-ring">
             <ScoreRing value={activeValue} active={mounted} color={activeColors.ring} size="sm" />
             <p className="score-block-ring-label">{activeLabel}</p>
@@ -165,7 +168,7 @@ export function SiteScorePanel({
   return (
     <section
       className={`score-panel ${mounted ? "score-panel-ready" : ""}`}
-      aria-label="Ratings and scores"
+      aria-label="Community census"
     >
       <div className="score-panel-summary">
         <p className="score-panel-kicker">{label}</p>

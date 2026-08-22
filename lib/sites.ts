@@ -18,8 +18,8 @@ export type Site = {
   reason: string;
   line: string;
   started: string;
-  pros: string[];
-  cons: string[];
+  /** Short owner-defined trait chips (max 8) */
+  featureList: string[];
   /** Seed scores shown until community reviews exist */
   seed: Scores;
   /** Owner-customized banner image URL */
@@ -42,15 +42,14 @@ export const sites: Site[] = [
     icon: "/sites/anilight.png",
     category: "japanese",
     reason: "cinematic discovery",
-    line: "Premium anime discovery — trending, seasonal, and top rated with cinematic visuals.",
+    line: "Premium anime discovery — trending, seasonal, and top rated.",
     started: "2024",
-    pros: [
-      "Premium discovery platform",
-      "Trending & seasonal picks",
+    featureList: [
+      "Premium discovery",
+      "Trending & seasonal",
       "Top rated catalogs",
       "Cinematic visuals",
     ],
-    cons: ["Depends on scraped sources"],
     seed: { ui: 96, ux: 94, catalog: 82, features: 68 },
   },
   {
@@ -61,15 +60,14 @@ export const sites: Site[] = [
     icon: "/sites/lunastream.png",
     category: "japanese",
     reason: "sync and stream",
-    line: "Watch anime in HD — subs, dubs, new episodes as they air, with AniList sync so the watchlist follows you.",
+    line: "HD anime with subs, dubs, and AniList sync that follows you.",
     started: "2025",
-    pros: [
+    featureList: [
       "HD sub & dub",
       "New episodes as they air",
       "AniList watchlist sync",
-      "Movies, OVAs, full seasons",
+      "Movies, OVAs, seasons",
     ],
-    cons: ["No community hub yet"],
     seed: { ui: 89, ux: 87, catalog: 93, features: 66 },
   },
   {
@@ -81,15 +79,14 @@ export const sites: Site[] = [
     icon: "/sites/anikura.png",
     category: "japanese",
     reason: "shelves + social",
-    line: "Watch and discover anime — seasonal picks, curated catalogs, genres, and watch together.",
+    line: "Watch and discover anime — seasonal picks, catalogs, watch together.",
     started: "2026",
-    pros: [
+    featureList: [
       "Large catalog",
       "Curated catalogs",
       "YouTube-style UI",
-      "Complex social system",
+      "Social watch rooms",
     ],
-    cons: ["Heavier first load"],
     seed: { ui: 93, ux: 78, catalog: 90, features: 95 },
     banner: "/sites/anikura-banner.png",
   },
@@ -104,13 +101,12 @@ export const sites: Site[] = [
     reason: "tracks your addiction",
     line: "Track and discover anime on NekoWatch.",
     started: "2024",
-    pros: [
+    featureList: [
       "Track what you watch",
       "Discover new shows",
       "Soft glass UI",
-      "Watchlist that sticks",
+      "Sticky watchlist",
     ],
-    cons: ["Still growing the catalog"],
     seed: { ui: 91, ux: 86, catalog: 74, features: 80 },
   },
 ];

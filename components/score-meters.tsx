@@ -4,7 +4,7 @@ import { SCORE_LABELS } from "@/lib/scores";
 export function ScoreMeters({
   scores,
   active = true,
-  label = "scores",
+  label = "community census",
   wide = false,
 }: {
   scores: Scores;

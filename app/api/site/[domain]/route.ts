@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSessionUser, isSiteOwner } from "@/lib/auth-server";
+import {
+  MAX_DESCRIPTION_LENGTH,
+  MAX_FEATURE_LENGTH,
+  MAX_FEATURES,
+  MAX_TAGLINE_LENGTH,
+  MIN_TAGLINE_LENGTH,
+  isValidBannerUrl,
+  normalizeFeatureList,
+} from "@/lib/site-page-limits";
 import { fetchSitePage, upsertSitePage, type SitePagePayload } from "@/lib/site-pages-server";
 import { siteByDomain } from "@/lib/sites";
 
@@ -11,12 +20,17 @@ function parsePayload(body: unknown): SitePagePayload | null {
 
   const line = typeof data.line === "string" ? data.line.trim() : undefined;
   const started = typeof data.started === "string" ? data.started.trim() : undefined;
-  const pros = Array.isArray(data.pros)
-    ? data.pros.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-    : undefined;
-  const cons = Array.isArray(data.cons)
-    ? data.cons.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-    : undefined;
+  const rawFeatures = Array.isArray(data.feature_list)
+    ? data.feature_list
+    : Array.isArray(data.features)
+      ? data.features
+      : undefined;
+  const feature_list =
+    rawFeatures !== undefined
+      ? normalizeFeatureList(
+          rawFeatures.filter((item): item is string => typeof item === "string"),
+        )
+      : undefined;
   const banner_url =
     data.banner_url === null
       ? null
@@ -25,16 +39,27 @@ function parsePayload(body: unknown): SitePagePayload | null {
         : undefined;
   const description = typeof data.description === "string" ? data.description.trim() : undefined;
 
-  if (line !== undefined && (line.length < 10 || line.length > 500)) return null;
-  if (started !== undefined && (started.length < 2 || started.length > 32)) return null;
-  if (pros !== undefined && (pros.length < 1 || pros.length > 12)) return null;
-  if (cons !== undefined && (cons.length < 1 || cons.length > 12)) return null;
-  if (banner_url !== undefined && banner_url !== null && !/^https?:\/\/.+/i.test(banner_url)) {
+  if (
+    line !== undefined &&
+    (line.length < MIN_TAGLINE_LENGTH || line.length > MAX_TAGLINE_LENGTH)
+  ) {
     return null;
   }
-  if (description !== undefined && description.length > 3000) return null;
+  if (started !== undefined && (started.length < 2 || started.length > 32)) return null;
+  if (
+    feature_list !== undefined &&
+    (feature_list.length < 1 ||
+      feature_list.length > MAX_FEATURES ||
+      feature_list.some((item) => item.length > MAX_FEATURE_LENGTH))
+  ) {
+    return null;
+  }
+  if (banner_url !== undefined && banner_url !== null && !isValidBannerUrl(banner_url)) {
+    return null;
+  }
+  if (description !== undefined && description.length > MAX_DESCRIPTION_LENGTH) return null;
 
-  return { line, started, pros, cons, banner_url, description };
+  return { line, started, feature_list, banner_url, description };
 }
 
 export async function GET(_request: Request, { params }: Params) {
@@ -83,7 +108,12 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const page = await upsertSitePage(site.domain, session.id, payload);
-    return NextResponse.json({ page });
+    return NextResponse.json({
+      page: {
+        ...page,
+        feature_list: page.pros,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update page";
     return NextResponse.json({ error: message }, { status: 500 });

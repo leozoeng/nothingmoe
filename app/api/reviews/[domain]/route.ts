@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth-server";
-import { fetchReviews, submitReview } from "@/lib/reviews-server";
+import { fetchReviews, ReviewConflictError, submitReview } from "@/lib/reviews-server";
 import { parseReviewPayload } from "@/lib/scores";
 import { siteByDomain } from "@/lib/sites";
 
@@ -46,11 +46,12 @@ export async function POST(request: Request, { params }: Params) {
   const payload = parsed;
 
   try {
-    await submitReview(site.domain, session.id, payload);
+    const result = await submitReview(site.domain, session.id, payload);
     const data = await fetchReviews(site.domain, session.id);
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(data, { status: result.created ? 201 : 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to submit review";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const status = error instanceof ReviewConflictError ? 409 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

@@ -1,17 +1,13 @@
-const KEY = "nm-boosts-v1";
+const KEY = "nm-boosts-v2";
+const COOLDOWN_MS = 12 * 60 * 60 * 1000;
 
 type BoostStore = {
-  day: string;
-  voted: string[];
+  lastBoostAt: Record<string, number>;
   counts: Record<string, number>;
 };
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function empty(): BoostStore {
-  return { day: today(), voted: [], counts: {} };
+  return { lastBoostAt: {}, counts: {} };
 }
 
 export function readBoosts(): BoostStore {
@@ -19,13 +15,9 @@ export function readBoosts(): BoostStore {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return empty();
-    const parsed = JSON.parse(raw) as BoostStore;
-    if (parsed.day !== today()) {
-      return { day: today(), voted: [], counts: parsed.counts ?? {} };
-    }
+    const parsed = JSON.parse(raw) as Partial<BoostStore>;
     return {
-      day: parsed.day,
-      voted: parsed.voted ?? [],
+      lastBoostAt: parsed.lastBoostAt ?? {},
       counts: parsed.counts ?? {},
     };
   } catch {
@@ -37,15 +29,25 @@ export function writeBoosts(store: BoostStore) {
   window.localStorage.setItem(KEY, JSON.stringify(store));
 }
 
-export function canBoost(domain: string, store: BoostStore) {
-  return !store.voted.includes(domain);
+export function canBoost(domain: string, store: BoostStore, now = Date.now()) {
+  const last = store.lastBoostAt[domain];
+  if (!last) return true;
+  return now - last >= COOLDOWN_MS;
 }
 
-export function applyBoost(domain: string, store: BoostStore): BoostStore {
-  if (!canBoost(domain, store)) return store;
+export function msUntilBoost(domain: string, store: BoostStore, now = Date.now()) {
+  const last = store.lastBoostAt[domain];
+  if (!last) return 0;
+  return Math.max(0, COOLDOWN_MS - (now - last));
+}
+
+export function applyBoost(domain: string, store: BoostStore, now = Date.now()): BoostStore {
+  if (!canBoost(domain, store, now)) return store;
   return {
-    day: today(),
-    voted: [...store.voted, domain],
+    lastBoostAt: {
+      ...store.lastBoostAt,
+      [domain]: now,
+    },
     counts: {
       ...store.counts,
       [domain]: (store.counts[domain] ?? 0) + 1,

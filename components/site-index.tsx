@@ -37,9 +37,8 @@ function VibeMeters({
   active: boolean;
 }) {
   const merged = mergeScores(site.seed, stats ?? computeStats([]));
-  const label = stats && stats.count > 0 ? "community avg" : "scores";
 
-  return <ScoreMeters scores={merged} active={active} label={label} />;
+  return <ScoreMeters scores={merged} active={active} label="community census" />;
 }
 
 function BoostButton({
@@ -62,7 +61,7 @@ function BoostButton({
         onBoost(domain);
       }}
       className={`boost-chip ${locked ? "is-locked" : ""}`}
-      aria-label={locked ? "Already boosted today" : "Boost this site"}
+      aria-label={locked ? "Boost available again in 12 hours" : "Boost this site"}
     >
       <span className="boost-chip-shine" aria-hidden="true" />
       <svg viewBox="0 0 24 24" className="h-3 w-3" aria-hidden="true">
@@ -233,8 +232,7 @@ export function SiteIndex() {
   const [compare, setCompare] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [boosts, setBoosts] = useState(() => ({
-    day: "",
-    voted: [] as string[],
+    lastBoostAt: {} as Record<string, number>,
     counts: {} as Record<string, number>,
   }));
   const [reviewStats, setReviewStats] = useState<Record<string, ReviewStats>>({});
@@ -276,7 +274,7 @@ export function SiteIndex() {
 
   const onBoost = (domain: string) => {
     setBoosts((current) => {
-      const base = current.day ? current : readBoosts();
+      const base = current.lastBoostAt ? current : readBoosts();
       if (!canBoost(domain, base)) return base;
       const next = applyBoost(domain, base);
       writeBoosts(next);

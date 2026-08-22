@@ -2,17 +2,31 @@
 
 import { useEffect, useState } from "react";
 
-function readDemoMode() {
+function readFlag(name: string) {
   if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("demo") === "1";
+  return new URLSearchParams(window.location.search).get(name) === "1";
+}
+
+function readDemoMode() {
+  return readFlag("demo");
 }
 
 export function useDemoMode() {
-  const [demoMode, setDemoMode] = useState(readDemoMode);
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
     setDemoMode(readDemoMode());
   }, []);
 
   return demoMode;
+}
+
+export function useOwnerPreview() {
+  const [ownerPreview, setOwnerPreview] = useState(false);
+
+  useEffect(() => {
+    setOwnerPreview(readFlag("owner"));
+  }, []);
+
+  return ownerPreview;
 }
