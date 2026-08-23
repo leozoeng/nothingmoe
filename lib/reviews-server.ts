@@ -6,6 +6,7 @@ import {
 } from "./scores";
 import { createClient } from "./supabase/server";
 import { supabaseConfigured } from "./supabase/client";
+import { adminConfigured, createAdminClient } from "./supabase/admin";
 import { VALID_DOMAINS } from "./sites";
 
 type RawReview = {
@@ -197,4 +198,27 @@ export async function submitReviewResponse(reviewId: string, userId: string, bod
   );
 
   if (error) throw new Error(error.message);
+}
+
+/** Moderator delete — uses service role so it can remove any review. */
+export async function deleteReviewAsModerator(reviewId: string, domain: string) {
+  if (!VALID_DOMAINS.includes(domain)) {
+    throw new Error("Invalid site");
+  }
+
+  if (!adminConfigured()) {
+    throw new Error("Admin client is not configured");
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("nothingmoe_reviews")
+    .delete()
+    .eq("id", reviewId)
+    .eq("site_domain", domain)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Review not found");
 }

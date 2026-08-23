@@ -28,19 +28,25 @@ export function StarPicker({
   onChange: (stars: number) => void;
 }) {
   return (
-    <div className="star-picker" role="group" aria-label="Rating">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star)}
-          className={`star-picker-btn ${star <= value ? "star-gold is-active" : "star-empty"}`}
-          aria-label={`${star} star${star === 1 ? "" : "s"}`}
-          aria-pressed={star <= value}
-        >
-          ★
-        </button>
-      ))}
+    <div className="star-picker-field">
+      <div className="star-picker-label-row">
+        <span className="star-picker-label">stars</span>
+        <span className="star-picker-value">{value > 0 ? `${value} / 5` : "pick a rating"}</span>
+      </div>
+      <div className="star-picker" role="group" aria-label="Star rating">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            className={`star-picker-btn ${star <= value ? "star-gold is-active" : "star-empty"}`}
+            aria-label={`${star} star${star === 1 ? "" : "s"}`}
+            aria-pressed={star <= value}
+          >
+            ★
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

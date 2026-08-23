@@ -949,25 +949,53 @@ a {
   gap: 0.2rem;
 }
 
+.star-picker-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.star-picker-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.star-picker-label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 244, 0.38);
+}
+
+.star-picker-value {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(244, 244, 244, 0.55);
+}
+
 .star-picker-btn {
   border: 0;
-  padding: 0.1rem 0.15rem;
+  padding: 0.15rem 0.2rem;
   background: transparent;
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
   cursor: pointer;
   transition:
     transform 0.2s var(--ease),
-    filter 0.25s var(--ease);
+    filter 0.25s var(--ease),
+    color 0.2s var(--ease);
 }
 
 .star-picker-btn.star-empty {
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.32);
   -webkit-text-fill-color: currentColor;
 }
 
 .star-picker-btn.star-empty:hover {
-  color: rgba(255, 230, 160, 0.55);
+  color: rgba(255, 230, 160, 0.72);
   transform: scale(1.08);
 }
 

@@ -12,6 +12,7 @@ import {
 import type { Site } from "@/lib/sites";
 import { getAnikuraDemoReviews } from "@/lib/demo-reviews";
 import { useDemoMode, useOwnerPreview } from "@/lib/demo-mode";
+import { isModerator } from "@/lib/moderation";
 import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
@@ -113,16 +114,22 @@ function ScoreSlider({
 function ReviewCard({
   review,
   isOwner,
+  canModerate,
+  domain,
   onResponded,
 }: {
   review: Review;
   isOwner: boolean;
+  canModerate: boolean;
+  domain: string;
   onResponded: () => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyBody, setReplyBody] = useState(review.response?.body ?? "");
   const [replySaving, setReplySaving] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const date = new Date(review.created_at).toLocaleDateString(undefined, {
     month: "short",
@@ -152,6 +159,29 @@ function ReviewCard({
     }
   };
 
+  const deleteReview = async () => {
+    if (!canModerate || deleting) return;
+    const ok = window.confirm("Delete this review? Scores will recalculate.");
+    if (!ok) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/reviews/${encodeURIComponent(domain)}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: review.id }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to delete review");
+      onResponded();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete review");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <article className="site-review">
       <div className="flex items-start justify-between gap-3">
@@ -161,9 +191,25 @@ function ReviewCard({
           </span>
           <p className="site-review-author">{review.author}</p>
         </div>
-        <time className="font-sans text-[10px] text-faint">{date}</time>
+        <div className="flex flex-col items-end gap-2">
+          <time className="font-sans text-[10px] text-faint">{date}</time>
+          {canModerate ? (
+            <button
+              type="button"
+              onClick={() => void deleteReview()}
+              disabled={deleting}
+              className="action-chip action-chip-view !px-2.5 !py-1.5"
+            >
+              <span className="action-chip-shine" aria-hidden="true" />
+              <span>{deleting ? "deleting..." : "delete"}</span>
+            </button>
+          ) : null}
+        </div>
       </div>
       <p className="site-review-body">{review.body}</p>
+      {deleteError ? (
+        <p className="mt-2 font-sans text-[11px] text-[#ffb7c5]">{deleteError}</p>
+      ) : null}
       <div className="site-review-scores">
         {SCORE_LABELS.map(({ key, label }) => (
           <span key={key} className="site-review-score">
@@ -231,6 +277,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
   const ownerPreview = useOwnerPreview();
   const [site, setSite] = useState(initialSite);
   const canEdit = isOwner || ownerPreview;
+  const canModerate = isModerator(user);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const isAnikuraDemo = demoMode && site.domain === "anikura.club";
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -239,7 +286,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [stars, setStars] = useState(5);
+  const [stars, setStars] = useState(0);
   const [scoreUi, setScoreUi] = useState(50);
   const [scoreUx, setScoreUx] = useState(50);
   const [scoreCatalog, setScoreCatalog] = useState(50);
@@ -248,9 +295,10 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
 
   const displayScores = mergeScores(site.seed, stats);
   const displayStars = stats.avgStars ?? null;
-  const visibleReviews = userReview
-    ? reviews.filter((review) => review.id !== userReview.id)
-    : reviews;
+  const visibleReviews =
+    canModerate || !userReview
+      ? reviews
+      : reviews.filter((review) => review.id !== userReview.id);
 
   const loadReviews = useCallback(async () => {
     if (isAnikuraDemo) {
@@ -311,6 +359,11 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
 
     if (isAnikuraDemo) {
       setError("preview mode — reviews aren't saved. sign up for real to post.");
+      return;
+    }
+
+    if (stars < 1 || stars > 5) {
+      setError("Pick a star rating from 1 to 5");
       return;
     }
 
@@ -500,18 +553,20 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
 
                 {error ? <p className="site-page-error">{error}</p> : null}
 
-                <button type="submit" disabled={submitting} className="action-chip action-chip-open">
-                  <span className="action-chip-shine" aria-hidden="true" />
-                  <span>
-                    {submitting
-                      ? userReview
-                        ? "updating..."
-                        : "posting..."
-                      : userReview
-                        ? "update review"
-                        : "post review"}
-                  </span>
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" disabled={submitting} className="action-chip action-chip-open">
+                    <span className="action-chip-shine" aria-hidden="true" />
+                    <span>
+                      {submitting
+                        ? userReview
+                          ? "updating..."
+                          : "posting..."
+                        : userReview
+                          ? "update review"
+                          : "post review"}
+                    </span>
+                  </button>
+                </div>
               </form>
             )}
           </div>
@@ -525,6 +580,8 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
                   key={review.id}
                   review={review}
                   isOwner={canEdit}
+                  canModerate={canModerate}
+                  domain={site.domain}
                   onResponded={() => void loadReviews()}
                 />
               ))}
