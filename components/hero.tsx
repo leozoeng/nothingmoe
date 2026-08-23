@@ -69,16 +69,8 @@ export function Hero() {
         </p>
       ) : null}
       <h1
-        className="rise mt-7 px-1 font-display text-[clamp(2.7rem,10vw,5.6rem)] font-bold leading-[1.12] tracking-[-0.045em] text-[#f2f2f2]"
-        style={{
-          animationDelay: "0.12s",
-          textShadow: "0 1px 0 rgba(255,255,255,0.35), 0 12px 40px rgba(0,0,0,0.35)",
-          backgroundImage: "linear-gradient(180deg, #ffffff 0%, #e8e8e8 55%, #bdbdbd 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          paddingBottom: "0.12em",
-        }}
+        className="hero-title rise mt-7 px-1 font-display text-[clamp(2.7rem,10vw,5.6rem)] font-bold leading-[1.12] tracking-[-0.045em]"
+        style={{ animationDelay: "0.12s" }}
       >
         NothingMoe
       </h1>

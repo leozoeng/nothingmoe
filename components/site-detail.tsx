@@ -6,7 +6,7 @@ import {
   computeStats,
   mergeScores,
   SCORE_LABELS,
-  scoreColors,
+  scoreTierClass,
   type Review,
   type ReviewStats,
 } from "@/lib/scores";
@@ -279,12 +279,11 @@ function ReviewCard({
       <div className="site-review-scores">
         {SCORE_LABELS.map(({ key, label }) => {
           const value = review[`score_${key}` as keyof Review] as number;
-          const colors = scoreColors(value);
 
           return (
             <span key={key} className="site-review-score">
               {label}{" "}
-              <strong style={{ color: colors.text }}>{value}</strong>
+              <strong className={scoreTierClass(value)}>{value}</strong>
             </span>
           );
         })}

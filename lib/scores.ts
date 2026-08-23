@@ -157,6 +157,11 @@ export function scoreTier(value: number): ScoreTier {
   return "low";
 }
 
+export function scoreTierClass(value: number): string {
+  if (value <= 0) return "score-tier-empty";
+  return `score-tier-${scoreTier(value)}`;
+}
+
 export function scoreColors(value: number) {
   if (value <= 0) {
     return {

@@ -33,7 +33,7 @@ export function ScoreMeters({
                 {itemLabel}
               </span>
               <span
-                className={`font-sans tabular-nums text-chrome/55 ${
+                className={`font-sans tabular-nums text-dim ${
                   wide ? "text-[12px] font-medium" : "text-[10px]"
                 }`}
               >
@@ -41,12 +41,12 @@ export function ScoreMeters({
               </span>
             </div>
             <div
-              className={`overflow-hidden rounded-full bg-white/[0.06] ${
+              className={`meter-track overflow-hidden rounded-full ${
                 wide ? "h-[4px]" : "h-[3px]"
               }`}
             >
               <div
-                className="vibe-fill h-full rounded-full bg-gradient-to-r from-white/25 to-white/70"
+                className="meter-fill vibe-fill h-full rounded-full"
                 style={{ width: active ? `${scores[key]}%` : "0%" }}
               />
             </div>

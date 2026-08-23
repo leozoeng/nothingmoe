@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { avgStarsToGrade } from "@/lib/grades";
 import {
-  scoreColors,
+  scoreTierClass,
   SCORE_LABELS,
   type ReviewStats,
   type Scores,
@@ -13,12 +13,10 @@ import { GradeBadge } from "./grade-rating";
 function ScoreRing({
   value,
   active,
-  color,
   size = "md",
 }: {
   value: number;
   active: boolean;
-  color: string;
   size?: "md" | "sm";
 }) {
   const radius = size === "sm" ? 36 : 54;
@@ -26,10 +24,11 @@ function ScoreRing({
   const normalizedRadius = radius - stroke / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const offset = circumference - (active ? (value / 100) * circumference : 0);
+  const tierClass = scoreTierClass(value);
 
   return (
     <div
-      className={`score-panel-ring ${size === "sm" ? "score-panel-ring-sm" : ""}`}
+      className={`score-panel-ring ${tierClass} ${size === "sm" ? "score-panel-ring-sm" : ""}`}
       aria-hidden="true"
     >
       <svg width={radius * 2} height={radius * 2} viewBox={`0 0 ${radius * 2} ${radius * 2}`}>
@@ -42,7 +41,6 @@ function ScoreRing({
         />
         <circle
           className="score-panel-ring-fill"
-          stroke={color}
           strokeWidth={stroke}
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={offset}
@@ -53,7 +51,6 @@ function ScoreRing({
       </svg>
       <span
         className={`score-panel-ring-value ${size === "sm" ? "score-panel-ring-value-sm" : ""}`}
-        style={{ color }}
       >
         {value}
       </span>
@@ -135,7 +132,6 @@ export function SiteScorePanel({
   }, [scores]);
 
   const activeValue = hovered ? scores[hovered] : avgScore;
-  const activeColors = scoreColors(activeValue);
   const activeLabel = hovered
     ? SCORE_LABELS.find((item) => item.key === hovered)?.label
     : "overall";
@@ -157,7 +153,7 @@ export function SiteScorePanel({
           aria-label={`Community census, ${voteLabel}`}
         >
           <div className="score-block-ring">
-            <ScoreRing value={activeValue} active={mounted} color={activeColors.ring} size="sm" />
+            <ScoreRing value={activeValue} active={mounted} size="sm" />
             <p className="score-block-ring-label">{activeLabel}</p>
           </div>
           <ScoreMetersBlock
@@ -198,7 +194,7 @@ export function SiteScorePanel({
           )}
         </div>
         <div className="score-panel-overall">
-          <ScoreRing value={activeValue} active={mounted} color={activeColors.ring} />
+          <ScoreRing value={activeValue} active={mounted} />
           <p className="score-panel-overall-label">{activeLabel}</p>
         </div>
       </div>
