@@ -88,6 +88,38 @@ body {
   width: 100%;
 }
 
+
+.site-overview-label-stack {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.site-overview-label-meta,
+.score-panel-kicker-meta {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(244, 244, 244, 0.42);
+}
+
+.score-panel-kicker-meta {
+  margin: -0.35rem 0 0.85rem;
+}
+
+.review-honesty-notice {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 210, 120, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 196, 90, 0.06);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 236, 196, 0.78);
+}
+
 .site-overview-label {
   margin: 0;
   font-family: var(--font-sans);

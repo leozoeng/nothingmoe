@@ -140,14 +140,21 @@ export function SiteScorePanel({
     ? SCORE_LABELS.find((item) => item.key === hovered)?.label
     : "overall";
   const label = "community census";
+  const voteLabel =
+    stats.count > 0
+      ? `based on ${stats.count} vote${stats.count === 1 ? "" : "s"}`
+      : "no votes yet";
 
   if (compact) {
     return (
       <div className="site-overview-col site-overview-scores">
-        <p className="site-overview-label">{label}</p>
+        <div className="site-overview-label-stack">
+          <p className="site-overview-label">{label}</p>
+          <p className="site-overview-label-meta">{voteLabel}</p>
+        </div>
         <div
           className={`score-block ${mounted ? "score-block-ready" : ""}`}
-          aria-label="Community census"
+          aria-label={`Community census, ${voteLabel}`}
         >
           <div className="score-block-ring">
             <ScoreRing value={activeValue} active={mounted} color={activeColors.ring} size="sm" />
@@ -168,10 +175,11 @@ export function SiteScorePanel({
   return (
     <section
       className={`score-panel ${mounted ? "score-panel-ready" : ""}`}
-      aria-label="Community census"
+      aria-label={`Community census, ${voteLabel}`}
     >
       <div className="score-panel-summary">
         <p className="score-panel-kicker">{label}</p>
+        <p className="score-panel-kicker-meta">{voteLabel}</p>
         <div className="score-panel-rating-block">
           {displayStars !== null ? (
             <>

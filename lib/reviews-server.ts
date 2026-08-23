@@ -44,6 +44,7 @@ function mapReview(row: RawReview, currentUserId?: string | null): Review {
     site_domain: row.site_domain,
     user_id: row.user_id,
     author: profile?.display_name ?? "anonymous",
+    authorUsername: profile?.username ?? null,
     stars: row.stars,
     score_ui: row.score_ui,
     score_ux: row.score_ux,

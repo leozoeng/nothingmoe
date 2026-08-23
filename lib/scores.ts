@@ -27,6 +27,7 @@ export type Review = {
   site_domain: string;
   user_id: string | null;
   author: string;
+  authorUsername: string | null;
   stars: number;
   score_ui: number;
   score_ux: number;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth-server";
+import { getSessionUser, isUserBanned } from "@/lib/auth-server";
 import { isModerator } from "@/lib/moderation";
+import { assertNotBanned } from "@/lib/moderation-server";
 import {
   deleteReviewAsModerator,
   fetchReviews,
@@ -38,6 +39,17 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Sign in to post a review" }, { status: 401 });
   }
 
+  if (isUserBanned(session)) {
+    return NextResponse.json(
+      {
+        error:
+          session.profile?.banned_reason?.trim() ||
+          "Your account is banned from posting reviews.",
+      },
+      { status: 403 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -51,12 +63,15 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   try {
+    await assertNotBanned(session.id);
     const result = await submitReview(site.domain, session.id, parsed);
     const data = await fetchReviews(site.domain, session.id);
     return NextResponse.json(data, { status: result.created ? 201 : 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to submit review";
-    const status = error instanceof ReviewConflictError ? 409 : 500;
+    const lower = message.toLowerCase();
+    const status =
+      error instanceof ReviewConflictError ? 409 : lower.includes("banned") ? 403 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

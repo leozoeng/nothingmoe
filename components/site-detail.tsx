@@ -12,7 +12,8 @@ import {
 import type { Site } from "@/lib/sites";
 import { getAnikuraDemoReviews } from "@/lib/demo-reviews";
 import { useDemoMode, useOwnerPreview } from "@/lib/demo-mode";
-import { isModerator } from "@/lib/moderation";
+import { isModerator, REVIEW_HONESTY_NOTICE } from "@/lib/moderation";
+import { isUserBanned } from "@/lib/auth-server";
 import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
@@ -130,6 +131,7 @@ function ReviewCard({
   const [replyError, setReplyError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [moderating, setModerating] = useState<"ban" | "delete" | null>(null);
 
   const date = new Date(review.created_at).toLocaleDateString(undefined, {
     month: "short",
@@ -156,6 +158,42 @@ function ReviewCard({
       setReplyError(err instanceof Error ? err.message : "Failed to post response");
     } finally {
       setReplySaving(false);
+    }
+  };
+
+
+  const moderateUser = async (action: "ban" | "delete") => {
+    if (!canModerate || !review.user_id || moderating) return;
+    const label = action === "ban" ? "Ban this account from reviewing?" : "Permanently delete this account?";
+    const ok = window.confirm(
+      action === "ban"
+        ? `${label} They will not be able to post or update reviews.`
+        : `${label} This cannot be undone.`,
+    );
+    if (!ok) return;
+
+    setModerating(action);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/moderation/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: review.user_id,
+          action,
+          reason:
+            action === "ban"
+              ? "Banned for review abuse (fake scores / reputation manipulation)."
+              : undefined,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Moderation action failed");
+      onResponded();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Moderation action failed");
+    } finally {
+      setModerating(null);
     }
   };
 
@@ -194,15 +232,39 @@ function ReviewCard({
         <div className="flex flex-col items-end gap-2">
           <time className="font-sans text-[10px] text-faint">{date}</time>
           {canModerate ? (
-            <button
-              type="button"
-              onClick={() => void deleteReview()}
-              disabled={deleting}
-              className="action-chip action-chip-view !px-2.5 !py-1.5"
-            >
-              <span className="action-chip-shine" aria-hidden="true" />
-              <span>{deleting ? "deleting..." : "delete"}</span>
-            </button>
+            <div className="flex flex-col items-end gap-1.5">
+              <button
+                type="button"
+                onClick={() => void deleteReview()}
+                disabled={deleting || Boolean(moderating)}
+                className="action-chip action-chip-view !px-2.5 !py-1.5"
+              >
+                <span className="action-chip-shine" aria-hidden="true" />
+                <span>{deleting ? "deleting..." : "delete review"}</span>
+              </button>
+              {review.user_id ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void moderateUser("ban")}
+                    disabled={deleting || Boolean(moderating)}
+                    className="action-chip action-chip-view !px-2.5 !py-1.5"
+                  >
+                    <span className="action-chip-shine" aria-hidden="true" />
+                    <span>{moderating === "ban" ? "banning..." : "ban account"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void moderateUser("delete")}
+                    disabled={deleting || Boolean(moderating)}
+                    className="action-chip action-chip-view !px-2.5 !py-1.5"
+                  >
+                    <span className="action-chip-shine" aria-hidden="true" />
+                    <span>{moderating === "delete" ? "removing..." : "delete account"}</span>
+                  </button>
+                </>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>
@@ -528,8 +590,16 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
                   <span>sign in to review</span>
                 </button>
               </div>
+            ) : isUserBanned(user) ? (
+              <div className="site-page-review-form">
+                <p className="site-page-empty">
+                  {user.profile?.banned_reason?.trim() ||
+                    "Your account is banned from posting reviews."}
+                </p>
+              </div>
             ) : (
               <form onSubmit={submit} className="site-page-review-form">
+                <p className="review-honesty-notice">{REVIEW_HONESTY_NOTICE}</p>
                 <StarPicker value={stars} onChange={setStars} />
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
