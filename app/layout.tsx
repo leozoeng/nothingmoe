@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth-provider";
+import { SiteHeader } from "@/components/site-header";
+import { ThemeProvider } from "@/components/theme-provider";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -65,23 +69,44 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050505",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ececef" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
+  colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
 };
 
-import { AuthProvider } from "@/components/auth-provider";
-import { SiteHeader } from "@/components/site-header";
+const themeBootScript = `
+(function () {
+  try {
+    var key = ${JSON.stringify(THEME_STORAGE_KEY)};
+    var stored = localStorage.getItem(key);
+    var theme = stored === "light" || stored === "dark"
+      ? stored
+      : (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  } catch (e) {
+    document.documentElement.dataset.theme = "dark";
+  }
+})();
+`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body>
-        <AuthProvider>
-          <SiteHeader />
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <SiteHeader />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

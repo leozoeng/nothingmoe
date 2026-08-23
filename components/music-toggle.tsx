@@ -46,7 +46,7 @@ export function MusicToggle() {
       onClick={toggle}
       aria-pressed={on}
       aria-label={on ? "Mute music" : "Play music"}
-      className="fixed bottom-5 right-5 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-chrome/70 backdrop-blur-md transition-colors duration-300 hover:text-chrome sm:bottom-6 sm:right-6"
+      className="theme-toggle fixed bottom-5 right-5 z-40 sm:bottom-6 sm:right-6"
     >
       {on ? (
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true">

@@ -30,7 +30,7 @@ export function UserMenu() {
   if (!configured) return null;
 
   return (
-    <div className="site-header-actions flex items-center gap-2">
+    <>
       {loading ? (
         <span className="font-sans text-[10px] tracking-[0.14em] text-faint">...</span>
       ) : user ? (
@@ -87,6 +87,6 @@ export function UserMenu() {
           <span>account</span>
         </button>
       )}
-    </div>
+    </>
   );
 }
