@@ -28,6 +28,7 @@ export type Review = {
   user_id: string | null;
   author: string;
   authorUsername: string | null;
+  authorAvatarUrl: string | null;
   stars: number;
   score_ui: number;
   score_ux: number;

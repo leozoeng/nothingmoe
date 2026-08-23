@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getSessionUser } from "@/lib/auth-server";
 import { isModerator } from "@/lib/moderation";
+import { listSiteOwnersAsModerator } from "@/lib/moderation-server";
 import { fetchAllSites } from "@/lib/sites-server";
 
 export default async function AdminPage() {
@@ -13,12 +14,15 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const sites = await fetchAllSites();
+  const [sites, initialOwners] = await Promise.all([
+    fetchAllSites(),
+    listSiteOwnersAsModerator(session),
+  ]);
 
   return (
     <Experience>
       <SiteHeader />
-      <AdminDashboard initialSites={sites} />
+      <AdminDashboard initialSites={sites} initialOwners={initialOwners} />
       <SiteFooter />
     </Experience>
   );

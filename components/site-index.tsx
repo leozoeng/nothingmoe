@@ -188,7 +188,17 @@ function SiteRow({
   );
 }
 
-function ComparePanel({ a, b, onClear }: { a: Site; b: Site; onClear: () => void }) {
+function ComparePanel({
+  a,
+  b,
+  reviewStats,
+  onClear,
+}: {
+  a: Site;
+  b: Site;
+  reviewStats: Record<string, ReviewStats>;
+  onClear: () => void;
+}) {
   return (
     <div className="compare-panel mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
       <div className="flex items-center justify-between px-3 py-2.5">
@@ -213,7 +223,7 @@ function ComparePanel({ a, b, onClear }: { a: Site; b: Site; onClear: () => void
                 <p className="truncate font-sans text-[10px] text-muted">{site.reason}</p>
               </div>
             </div>
-            <VibeMeters site={site} active />
+            <VibeMeters site={site} stats={reviewStats[site.domain]} active />
             <div className="flex flex-wrap gap-2">
               <ActionChip href={`/site/${site.slug}`} label="view page" variant="view" external={false} />
               <ActionChip href={site.href} label="open" variant="open" />
@@ -225,7 +235,13 @@ function ComparePanel({ a, b, onClear }: { a: Site; b: Site; onClear: () => void
   );
 }
 
-export function SiteIndex({ initialSites }: { initialSites: Site[] }) {
+export function SiteIndex({
+  initialSites,
+  initialReviewStats,
+}: {
+  initialSites: Site[];
+  initialReviewStats: Record<string, ReviewStats>;
+}) {
   const items = initialSites;
   const [openId, setOpenId] = useState<string | null>(null);
   const [compare, setCompare] = useState(false);
@@ -234,30 +250,11 @@ export function SiteIndex({ initialSites }: { initialSites: Site[] }) {
     lastBoostAt: {} as Record<string, number>,
     counts: {} as Record<string, number>,
   }));
-  const [reviewStats, setReviewStats] = useState<Record<string, ReviewStats>>({});
+  const reviewStats = initialReviewStats;
 
   useEffect(() => {
     setBoosts(readBoosts());
   }, []);
-
-  useEffect(() => {
-    if (!openId) return;
-
-    let cancelled = false;
-    void fetch(`/api/reviews/${encodeURIComponent(openId)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { stats: ReviewStats } | null) => {
-        if (!cancelled && data?.stats) {
-          setReviewStats((current) =>
-            current[openId] ? current : { ...current, [openId]: data.stats },
-          );
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [openId]);
 
   const toggleOpen = (domain: string) => {
     setOpenId((current) => (current === domain ? null : domain));
@@ -339,7 +336,12 @@ export function SiteIndex({ initialSites }: { initialSites: Site[] }) {
         </Reveal>
 
         {compare && pair.length === 2 ? (
-          <ComparePanel a={pair[0]} b={pair[1]} onClear={() => setPicked([])} />
+          <ComparePanel
+            a={pair[0]}
+            b={pair[1]}
+            reviewStats={reviewStats}
+            onClear={() => setPicked([])}
+          />
         ) : null}
       </div>
     </section>

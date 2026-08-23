@@ -21,8 +21,8 @@ type RawReview = {
   body: string;
   created_at: string;
   nothingmoe_profiles:
-    | { display_name: string; username: string }
-    | { display_name: string; username: string }[]
+    | { display_name: string; username: string; avatar_url: string | null }
+    | { display_name: string; username: string; avatar_url: string | null }[]
     | null;
   nothingmoe_review_responses:
     | { id: string; body: string; created_at: string; updated_at: string }
@@ -45,6 +45,7 @@ function mapReview(row: RawReview, currentUserId?: string | null): Review {
     user_id: row.user_id,
     author: profile?.display_name ?? "anonymous",
     authorUsername: profile?.username ?? null,
+    authorAvatarUrl: profile?.avatar_url ?? null,
     stars: row.stars,
     score_ui: row.score_ui,
     score_ux: row.score_ux,
@@ -80,7 +81,7 @@ export async function fetchReviews(
   const { data, error } = await supabase
     .from("nothingmoe_reviews")
     .select(
-      "id, site_domain, user_id, stars, score_ui, score_ux, score_catalog, score_features, body, created_at, nothingmoe_profiles(display_name, username), nothingmoe_review_responses(id, body, created_at, updated_at)",
+      "id, site_domain, user_id, stars, score_ui, score_ux, score_catalog, score_features, body, created_at, nothingmoe_profiles(display_name, username, avatar_url), nothingmoe_review_responses(id, body, created_at, updated_at)",
     )
     .eq("site_domain", domain)
     .order("created_at", { ascending: false })
@@ -95,7 +96,7 @@ export async function fetchReviews(
     const { data: ownRow, error: ownError } = await supabase
       .from("nothingmoe_reviews")
       .select(
-        "id, site_domain, user_id, stars, score_ui, score_ux, score_catalog, score_features, body, created_at, nothingmoe_profiles(display_name, username), nothingmoe_review_responses(id, body, created_at, updated_at)",
+        "id, site_domain, user_id, stars, score_ui, score_ux, score_catalog, score_features, body, created_at, nothingmoe_profiles(display_name, username, avatar_url), nothingmoe_review_responses(id, body, created_at, updated_at)",
       )
       .eq("site_domain", domain)
       .eq("user_id", currentUserId)

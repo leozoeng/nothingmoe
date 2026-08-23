@@ -306,24 +306,44 @@ export async function listSiteOwnersAsModerator(moderator: SessionUser): Promise
   }
 
   const admin = createAdminClient();
-  const [{ data: sites, error: sitesError }, { data: owners, error: ownersError }] =
-    await Promise.all([
-      admin.from("nothingmoe_sites").select("domain, name, slug").order("sort_order", { ascending: true }),
-      admin
-        .from("nothingmoe_site_owners")
-        .select("site_domain, user_id, nothingmoe_profiles(username, display_name)"),
-    ]);
+  const { data: sites, error: sitesError } = await admin
+    .from("nothingmoe_sites")
+    .select("domain, name, slug")
+    .order("sort_order", { ascending: true });
 
   if (sitesError) throw new Error(sitesError.message);
+
+  const { data: ownerRows, error: ownersError } = await admin
+    .from("nothingmoe_site_owners")
+    .select("site_domain, user_id");
+
   if (ownersError) throw new Error(ownersError.message);
 
-  const ownerByDomain = new Map<string, SiteOwnerRow["owner"]>();
-  for (const row of owners ?? []) {
-    const profile = Array.isArray(row.nothingmoe_profiles)
-      ? row.nothingmoe_profiles[0]
-      : row.nothingmoe_profiles;
+  const userIds = [...new Set((ownerRows ?? []).map((row) => row.user_id))];
+  const profilesById = new Map<string, { username: string; display_name: string }>();
 
-    if (!profile || ownerByDomain.has(row.site_domain)) continue;
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await admin
+      .from("nothingmoe_profiles")
+      .select("id, username, display_name")
+      .in("id", userIds);
+
+    if (profilesError) throw new Error(profilesError.message);
+
+    for (const profile of profiles ?? []) {
+      profilesById.set(profile.id, {
+        username: profile.username,
+        display_name: profile.display_name,
+      });
+    }
+  }
+
+  const ownerByDomain = new Map<string, SiteOwnerRow["owner"]>();
+  for (const row of ownerRows ?? []) {
+    if (ownerByDomain.has(row.site_domain)) continue;
+
+    const profile = profilesById.get(row.user_id);
+    if (!profile) continue;
 
     ownerByDomain.set(row.site_domain, {
       userId: row.user_id,

@@ -32,9 +32,15 @@ async function loadSites(): Promise<Site[]> {
   return data.sites ?? [];
 }
 
-export function AdminDashboard({ initialSites }: { initialSites: Site[] }) {
+export function AdminDashboard({
+  initialSites,
+  initialOwners,
+}: {
+  initialSites: Site[];
+  initialOwners: SiteOwnerRow[];
+}) {
   const [sites, setSites] = useState(initialSites);
-  const [owners, setOwners] = useState<SiteOwnerRow[]>([]);
+  const [owners, setOwners] = useState(initialOwners);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +55,11 @@ export function AdminDashboard({ initialSites }: { initialSites: Site[] }) {
 
   const refreshOwners = useCallback(async () => {
     const res = await fetch("/api/moderation/site-owners", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = (await res.json()) as { sites?: SiteOwnerRow[] };
+    const data = (await res.json()) as { sites?: SiteOwnerRow[]; error?: string };
+    if (!res.ok) {
+      setError(data.error ?? "Failed to load site owners");
+      return;
+    }
     setOwners(data.sites ?? []);
   }, []);
 
@@ -128,6 +137,16 @@ export function AdminDashboard({ initialSites }: { initialSites: Site[] }) {
       setOwnerSaving(false);
     }
   };
+
+  const ownerRows =
+    owners.length > 0
+      ? owners
+      : sites.map((site) => ({
+          domain: site.domain,
+          name: site.name,
+          slug: site.slug,
+          owner: null,
+        }));
 
   return (
     <main className="admin-shell px-6 py-10 sm:px-10">
@@ -212,7 +231,7 @@ export function AdminDashboard({ initialSites }: { initialSites: Site[] }) {
           </div>
 
           <div className="divide-y divide-white/10">
-            {owners.map((row) => (
+            {ownerRows.map((row) => (
               <div key={row.domain} className="px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>

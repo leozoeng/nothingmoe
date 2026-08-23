@@ -64,6 +64,10 @@ export function UserMenu() {
               <span>admin</span>
             </Link>
           ) : null}
+          <Link href="/account" className="action-chip action-chip-view !px-3 !py-2">
+            <span className="action-chip-shine" aria-hidden="true" />
+            <span>account</span>
+          </Link>
           <button
             type="button"
             onClick={() => void signOut()}

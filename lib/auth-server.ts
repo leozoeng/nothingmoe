@@ -4,6 +4,7 @@ export type UserProfile = {
   id: string;
   username: string;
   display_name: string;
+  avatar_url: string | null;
   banned_at: string | null;
   banned_reason: string | null;
 };
@@ -26,7 +27,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const [{ data: profile }, { data: owners }] = await Promise.all([
     supabase
       .from("nothingmoe_profiles")
-      .select("id, username, display_name, banned_at, banned_reason")
+      .select("id, username, display_name, avatar_url, banned_at, banned_reason")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("nothingmoe_site_owners").select("site_domain").eq("user_id", user.id),
@@ -40,6 +41,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
           id: profile.id,
           username: profile.username,
           display_name: profile.display_name,
+          avatar_url: profile.avatar_url ?? null,
           banned_at: profile.banned_at ?? null,
           banned_reason: profile.banned_reason ?? null,
         }

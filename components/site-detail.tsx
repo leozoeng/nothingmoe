@@ -6,6 +6,7 @@ import {
   computeStats,
   mergeScores,
   SCORE_LABELS,
+  scoreColors,
   type Review,
   type ReviewStats,
 } from "@/lib/scores";
@@ -17,6 +18,7 @@ import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
 import { GradeDisplay, GradePicker } from "./grade-rating";
+import { UserAvatar } from "./user-avatar";
 
 function DiscordMark() {
   return (
@@ -221,15 +223,18 @@ function ReviewCard({
 
   return (
     <article className="site-review">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <span className="site-review-stars">
+      <div className="site-review-header">
+        <UserAvatar name={review.author} src={review.authorAvatarUrl} size="md" />
+        <div className="site-review-meta min-w-0 flex-1">
+          <p className="site-review-byline">
+            <span className="site-review-author">{review.author}</span>
+            <span className="site-review-rated"> rated </span>
             <GradeDisplay value={review.stars} size="sm" />
-          </span>
-          <p className="site-review-author">{review.author}</p>
+            <span className="site-review-ranked"> rank</span>
+          </p>
+          <time className="site-review-date">{date}</time>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <time className="font-sans text-[10px] text-faint">{date}</time>
           {canModerate ? (
             <div className="flex flex-col items-end gap-1.5">
               <button
@@ -272,11 +277,17 @@ function ReviewCard({
         <p className="mt-2 font-sans text-[11px] text-[#ffb7c5]">{deleteError}</p>
       ) : null}
       <div className="site-review-scores">
-        {SCORE_LABELS.map(({ key, label }) => (
-          <span key={key} className="site-review-score">
-            {label} <strong>{review[`score_${key}` as keyof Review] as number}</strong>
-          </span>
-        ))}
+        {SCORE_LABELS.map(({ key, label }) => {
+          const value = review[`score_${key}` as keyof Review] as number;
+          const colors = scoreColors(value);
+
+          return (
+            <span key={key} className="site-review-score">
+              {label}{" "}
+              <strong style={{ color: colors.text }}>{value}</strong>
+            </span>
+          );
+        })}
       </div>
 
       {review.response ? (

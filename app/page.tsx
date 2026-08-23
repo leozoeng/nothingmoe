@@ -3,6 +3,7 @@ import { Hero } from "@/components/hero";
 import { MusicToggle } from "@/components/music-toggle";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteIndex } from "@/components/site-index";
+import { fetchAllSiteReviewStats } from "@/lib/review-stats-server";
 import { fetchAllSites } from "@/lib/sites-server";
 
 const jsonLd = {
@@ -14,7 +15,7 @@ const jsonLd = {
 };
 
 export default async function Home() {
-  const sites = await fetchAllSites();
+  const [sites, reviewStats] = await Promise.all([fetchAllSites(), fetchAllSiteReviewStats()]);
 
   return (
     <Experience>
@@ -24,7 +25,7 @@ export default async function Home() {
       />
       <main className="flex-1">
         <Hero />
-        <SiteIndex initialSites={sites} />
+        <SiteIndex initialSites={sites} initialReviewStats={reviewStats} />
       </main>
       <SiteFooter />
       <MusicToggle />
