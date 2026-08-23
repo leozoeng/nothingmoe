@@ -285,3 +285,108 @@ export async function reorderSiteAsModerator(
 
   return { domain, sortOrder: targetIndex + 1 };
 }
+
+export type SiteOwnerRow = {
+  domain: string;
+  name: string;
+  slug: string;
+  owner: {
+    userId: string;
+    username: string;
+    displayName: string;
+  } | null;
+};
+
+export async function listSiteOwnersAsModerator(moderator: SessionUser): Promise<SiteOwnerRow[]> {
+  if (!isModerator(moderator)) {
+    throw new Error("Not allowed");
+  }
+  if (!adminConfigured()) {
+    throw new Error("Admin client is not configured");
+  }
+
+  const admin = createAdminClient();
+  const [{ data: sites, error: sitesError }, { data: owners, error: ownersError }] =
+    await Promise.all([
+      admin.from("nothingmoe_sites").select("domain, name, slug").order("sort_order", { ascending: true }),
+      admin
+        .from("nothingmoe_site_owners")
+        .select("site_domain, user_id, nothingmoe_profiles(username, display_name)"),
+    ]);
+
+  if (sitesError) throw new Error(sitesError.message);
+  if (ownersError) throw new Error(ownersError.message);
+
+  const ownerByDomain = new Map<string, SiteOwnerRow["owner"]>();
+  for (const row of owners ?? []) {
+    const profile = Array.isArray(row.nothingmoe_profiles)
+      ? row.nothingmoe_profiles[0]
+      : row.nothingmoe_profiles;
+
+    if (!profile || ownerByDomain.has(row.site_domain)) continue;
+
+    ownerByDomain.set(row.site_domain, {
+      userId: row.user_id,
+      username: profile.username,
+      displayName: profile.display_name,
+    });
+  }
+
+  return (sites ?? []).map((site) => ({
+    domain: site.domain,
+    name: site.name,
+    slug: site.slug,
+    owner: ownerByDomain.get(site.domain) ?? null,
+  }));
+}
+
+export async function assignSiteOwnerAsModerator(
+  moderator: SessionUser,
+  domain: string,
+  ownerUserId: string,
+) {
+  if (!isModerator(moderator)) {
+    throw new Error("Not allowed");
+  }
+  if (!adminConfigured()) {
+    throw new Error("Admin client is not configured");
+  }
+
+  const siteDomain = domain.trim().toLowerCase();
+  const userId = ownerUserId.trim();
+  if (!siteDomain || !userId) {
+    throw new Error("Site and owner are required");
+  }
+
+  const admin = createAdminClient();
+  const [{ data: site }, { data: profile }] = await Promise.all([
+    admin.from("nothingmoe_sites").select("domain").eq("domain", siteDomain).maybeSingle(),
+    admin.from("nothingmoe_profiles").select("id, username, display_name").eq("id", userId).maybeSingle(),
+  ]);
+
+  if (!site) throw new Error("Site not found");
+  if (!profile) throw new Error("Owner account not found");
+
+  const { error: clearError } = await admin
+    .from("nothingmoe_site_owners")
+    .delete()
+    .eq("site_domain", siteDomain);
+
+  if (clearError) throw new Error(clearError.message);
+
+  const { error: insertError } = await admin.from("nothingmoe_site_owners").insert({
+    user_id: userId,
+    site_domain: siteDomain,
+  });
+
+  if (insertError) throw new Error(insertError.message);
+
+  return {
+    domain: siteDomain,
+    owner: {
+      userId: profile.id,
+      username: profile.username,
+      displayName: profile.display_name,
+    },
+  };
+}

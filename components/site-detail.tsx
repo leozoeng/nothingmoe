@@ -16,7 +16,7 @@ import { isModerator, isUserBanned, REVIEW_HONESTY_NOTICE } from "@/lib/moderati
 import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
-import { StarDisplay, StarPicker } from "./star-rating";
+import { GradeDisplay, GradePicker } from "./grade-rating";
 
 function DiscordMark() {
   return (
@@ -224,7 +224,7 @@ function ReviewCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <span className="site-review-stars">
-            <StarDisplay value={review.stars} size="sm" />
+            <GradeDisplay value={review.stars} size="sm" />
           </span>
           <p className="site-review-author">{review.author}</p>
         </div>
@@ -424,7 +424,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
     }
 
     if (stars < 1 || stars > 5) {
-      setError("Pick a star rating from 1 to 5");
+      setError("Pick a rank from S to D");
       return;
     }
 
@@ -599,7 +599,7 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
             ) : (
               <form onSubmit={submit} className="site-page-review-form">
                 <p className="review-honesty-notice">{REVIEW_HONESTY_NOTICE}</p>
-                <StarPicker value={stars} onChange={setStars} />
+                <GradePicker value={stars} onChange={setStars} />
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <ScoreSlider label="ui" value={scoreUi} onChange={setScoreUi} />

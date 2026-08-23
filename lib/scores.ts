@@ -65,7 +65,7 @@ export function parseReviewPayload(body: unknown): ReviewPayload | { error: stri
   const text = typeof data.body === "string" ? data.body.trim() : "";
 
   if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
-    return { error: "Pick a star rating from 1 to 5" };
+    return { error: "Pick a rank from S to D" };
   }
 
   const scores = [score_ui, score_ux, score_catalog, score_features];
@@ -142,6 +142,7 @@ export function mergeScores(_seed: Scores, stats: ReviewStats): Scores {
   return stats.avgScores ?? EMPTY_SCORES;
 }
 
+/** @deprecated Use gradeLabel from lib/grades for display. */
 export function formatStars(value: number | null) {
   if (value === null) return "—";
   return value.toFixed(1);

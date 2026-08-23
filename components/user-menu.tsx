@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Site } from "@/lib/sites";
+import { isModerator } from "@/lib/moderation";
 import { useAuth } from "./auth-provider";
 
 async function loadSites(): Promise<Site[]> {
@@ -13,6 +15,7 @@ async function loadSites(): Promise<Site[]> {
 
 export function UserMenu() {
   const { user, loading, configured, openAuth, signOut } = useAuth();
+  const canModerate = isModerator(user);
   const [sites, setSites] = useState<Site[]>([]);
 
   useEffect(() => {
@@ -54,6 +57,12 @@ export function UserMenu() {
                 <span className="text-muted"> owner</span>
               </span>
             </span>
+          ) : null}
+          {canModerate ? (
+            <Link href="/admin" className="action-chip action-chip-view !px-3 !py-2">
+              <span className="action-chip-shine" aria-hidden="true" />
+              <span>admin</span>
+            </Link>
           ) : null}
           <button
             type="button"

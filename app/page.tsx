@@ -3,6 +3,7 @@ import { Hero } from "@/components/hero";
 import { MusicToggle } from "@/components/music-toggle";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteIndex } from "@/components/site-index";
+import { fetchAllSites } from "@/lib/sites-server";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -12,7 +13,9 @@ const jsonLd = {
   description: "nothing here is dog shit — that shady corner of the internet where the UI actually feels good.",
 };
 
-export default function Home() {
+export default async function Home() {
+  const sites = await fetchAllSites();
+
   return (
     <Experience>
       <script
@@ -21,7 +24,7 @@ export default function Home() {
       />
       <main className="flex-1">
         <Hero />
-        <SiteIndex />
+        <SiteIndex initialSites={sites} />
       </main>
       <SiteFooter />
       <MusicToggle />

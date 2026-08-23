@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { avgStarsToGrade } from "@/lib/grades";
 import {
-  formatStars,
   scoreColors,
   SCORE_LABELS,
   type ReviewStats,
   type Scores,
 } from "@/lib/scores";
-import { StarDisplay } from "./star-rating";
+import { GradeBadge } from "./grade-rating";
 
 function ScoreRing({
   value,
@@ -183,8 +183,9 @@ export function SiteScorePanel({
         <div className="score-panel-rating-block">
           {displayStars !== null ? (
             <>
-              <span className="score-panel-stars-value">{formatStars(displayStars)}</span>
-              <StarDisplay value={displayStars} />
+              {avgStarsToGrade(displayStars) ? (
+                <GradeBadge grade={avgStarsToGrade(displayStars)!} size="lg" />
+              ) : null}
               <p className="score-panel-meta">
                 {stats.count} review{stats.count === 1 ? "" : "s"}
               </p>
@@ -192,7 +193,7 @@ export function SiteScorePanel({
           ) : (
             <>
               <span className="score-panel-stars-value score-panel-stars-empty">—</span>
-              <p className="score-panel-meta">no star reviews yet</p>
+              <p className="score-panel-meta">no rank reviews yet</p>
             </>
           )}
         </div>
