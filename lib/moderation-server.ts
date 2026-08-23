@@ -260,14 +260,25 @@ export async function reorderSiteAsModerator(
   const next = [...rows];
   [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
 
-  for (let i = 0; i < next.length; i += 1) {
-    const desiredOrder = i + 1;
-    if (next[i].sort_order === desiredOrder) continue;
+  const updates = next
+    .map((row, i) => ({ domain: row.domain, sort_order: i + 1 }))
+    .filter((row, i) => next[i].sort_order !== row.sort_order);
 
+  // Unique sort_order requires a temp pass so swaps don't collide mid-update.
+  for (let i = 0; i < updates.length; i += 1) {
+    const { error: tempError } = await admin
+      .from("nothingmoe_sites")
+      .update({ sort_order: -(1000 + i) })
+      .eq("domain", updates[i].domain);
+
+    if (tempError) throw new Error(tempError.message);
+  }
+
+  for (const update of updates) {
     const { error: updateError } = await admin
       .from("nothingmoe_sites")
-      .update({ sort_order: desiredOrder })
-      .eq("domain", next[i].domain);
+      .update({ sort_order: update.sort_order })
+      .eq("domain", update.domain);
 
     if (updateError) throw new Error(updateError.message);
   }
