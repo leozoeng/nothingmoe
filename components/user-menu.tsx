@@ -1,14 +1,28 @@
 "use client";
 
-import { siteByDomain } from "@/lib/sites";
+import { useEffect, useState } from "react";
+import type { Site } from "@/lib/sites";
 import { useAuth } from "./auth-provider";
+
+async function loadSites(): Promise<Site[]> {
+  const res = await fetch("/api/sites", { cache: "no-store" });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { sites?: Site[] };
+  return data.sites ?? [];
+}
 
 export function UserMenu() {
   const { user, loading, configured, openAuth, signOut } = useAuth();
+  const [sites, setSites] = useState<Site[]>([]);
+
+  useEffect(() => {
+    void loadSites().then(setSites);
+  }, []);
+
   const ownedSite =
     user?.ownedSites
-      .map((domain) => siteByDomain(domain))
-      .find((site): site is NonNullable<typeof site> => site != null) ?? null;
+      .map((domain) => sites.find((site) => site.domain === domain))
+      .find((site): site is Site => site != null) ?? null;
 
   if (!configured) return null;
 

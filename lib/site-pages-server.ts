@@ -1,4 +1,5 @@
 import type { Site } from "./sites";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "./supabase/server";
 import { supabaseConfigured } from "./supabase/client";
 import { normalizeFeatureList } from "./site-page-limits";
@@ -32,7 +33,10 @@ export function mergeSiteWithPage(site: Site, page: SitePageOverride | null): Si
 export async function fetchSitePage(domain: string): Promise<SitePageOverride | null> {
   if (!supabaseConfigured()) return null;
 
-  const supabase = await createClient();
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
   const { data } = await supabase
     .from("nothingmoe_site_pages")
     .select("site_domain, line, started, pros, cons, banner_url, description, updated_at")

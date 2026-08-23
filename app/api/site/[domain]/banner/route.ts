@@ -6,14 +6,14 @@ import {
   MAX_BANNER_BYTES,
   bannerExtForType,
 } from "@/lib/site-page-limits";
-import { siteByDomain } from "@/lib/sites";
+import { fetchSiteByDomain } from "@/lib/sites-server";
 
 type Params = { params: Promise<{ domain: string }> };
 
 export async function POST(request: Request, { params }: Params) {
   const { domain: rawDomain } = await params;
   const domain = decodeURIComponent(rawDomain);
-  const site = siteByDomain(domain);
+  const site = await fetchSiteByDomain(domain);
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });

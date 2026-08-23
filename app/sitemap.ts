@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { sites } from "@/lib/sites";
+import { fetchAllSites } from "@/lib/sites-server";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const sites = await fetchAllSites();
   const sitePages = sites.map((site) => ({
     url: `https://nothingmoe.com/site/${site.slug}`,
     lastModified: new Date(),

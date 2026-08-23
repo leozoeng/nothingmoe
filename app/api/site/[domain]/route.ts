@@ -10,7 +10,7 @@ import {
   normalizeFeatureList,
 } from "@/lib/site-page-limits";
 import { fetchSitePage, upsertSitePage, type SitePagePayload } from "@/lib/site-pages-server";
-import { siteByDomain } from "@/lib/sites";
+import { fetchSiteByDomain } from "@/lib/sites-server";
 
 type Params = { params: Promise<{ domain: string }> };
 
@@ -65,7 +65,7 @@ function parsePayload(body: unknown): SitePagePayload | null {
 export async function GET(_request: Request, { params }: Params) {
   const { domain: rawDomain } = await params;
   const domain = decodeURIComponent(rawDomain);
-  const site = siteByDomain(domain);
+  const site = await fetchSiteByDomain(domain);
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
@@ -78,7 +78,7 @@ export async function GET(_request: Request, { params }: Params) {
 export async function PATCH(request: Request, { params }: Params) {
   const { domain: rawDomain } = await params;
   const domain = decodeURIComponent(rawDomain);
-  const site = siteByDomain(domain);
+  const site = await fetchSiteByDomain(domain);
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });

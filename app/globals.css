@@ -1835,6 +1835,94 @@ a {
   transform: translateY(-1px);
 }
 
+.mod-rank-btn {
+  display: inline-flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.72);
+  transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease);
+}
+
+.mod-rank-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.mod-rank-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.moderator-panel {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.moderator-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.moderator-field span {
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.moderator-field input {
+  width: 100%;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.moderator-field input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.moderator-owner-hits {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.moderator-owner-hit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.45rem 0.65rem;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 11px;
+  text-align: left;
+}
+
+.moderator-owner-hit:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.moderator-error {
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 11px;
+  color: #f87171;
+}
+
 .compare-panel {
   animation: rise 0.55s var(--ease) both;
 }

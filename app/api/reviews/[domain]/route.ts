@@ -9,13 +9,13 @@ import {
   submitReview,
 } from "@/lib/reviews-server";
 import { parseReviewPayload } from "@/lib/scores";
-import { siteByDomain } from "@/lib/sites";
+import { fetchSiteByDomain } from "@/lib/sites-server";
 
 type Params = { params: Promise<{ domain: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   const { domain } = await params;
-  const site = siteByDomain(decodeURIComponent(domain));
+  const site = await fetchSiteByDomain(decodeURIComponent(domain));
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   const { domain } = await params;
-  const site = siteByDomain(decodeURIComponent(domain));
+  const site = await fetchSiteByDomain(decodeURIComponent(domain));
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
@@ -78,7 +78,7 @@ export async function POST(request: Request, { params }: Params) {
 
 export async function DELETE(request: Request, { params }: Params) {
   const { domain } = await params;
-  const site = siteByDomain(decodeURIComponent(domain));
+  const site = await fetchSiteByDomain(decodeURIComponent(domain));
 
   if (!site) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });

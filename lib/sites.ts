@@ -32,7 +32,8 @@ export const categoryMeta: { id: CategoryId; label: string; empty: string }[] = 
   { id: "japanese", label: "World Ranking", empty: "nothing yet." },
 ];
 
-export const sites: Site[] = [
+/** Fallback seed list when Supabase is unavailable. */
+export const SEED_SITES: Site[] = [
   {
     slug: "anilight",
     name: "AniLight",
@@ -111,19 +112,23 @@ export const sites: Site[] = [
   },
 ];
 
-export const VALID_DOMAINS = sites.map((site) => site.domain);
+/** @deprecated Prefer fetchAllSites() from lib/sites-server. */
+export const sites = SEED_SITES;
+
+/** @deprecated Prefer fetchValidDomains() from lib/sites-server. */
+export const VALID_DOMAINS = SEED_SITES.map((site) => site.domain);
 
 export function sitesByCategory() {
   return categoryMeta.map((category) => ({
     ...category,
-    items: sites.filter((site) => site.category === category.id),
+    items: SEED_SITES.filter((site) => site.category === category.id),
   }));
 }
 
 export function siteByDomain(domain: string) {
-  return sites.find((site) => site.domain === domain);
+  return SEED_SITES.find((site) => site.domain === domain);
 }
 
 export function siteBySlug(slug: string) {
-  return sites.find((site) => site.slug === slug);
+  return SEED_SITES.find((site) => site.slug === slug);
 }

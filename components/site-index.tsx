@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 import { applyBoost, canBoost, readBoosts, writeBoosts } from "@/lib/boosts";
+import { isModerator } from "@/lib/moderation";
 import {
   computeStats,
   mergeScores,
   type ReviewStats,
 } from "@/lib/scores";
-import { sitesByCategory, type Site } from "@/lib/sites";
+import { SEED_SITES, type Site } from "@/lib/sites";
+import {
+  ModeratorAddSitePanel,
+  ModeratorRankControls,
+} from "./moderator-ranking-controls";
 import { ScoreMeters } from "./score-meters";
 import { ActionChip } from "./site-detail";
 import { Reveal } from "./reveal";
@@ -79,87 +85,108 @@ function BoostButton({
 function SiteRow({
   site,
   index,
+  total,
   open,
   compare,
   selected,
   boostCount,
   boostLocked,
   reviewStats,
+  canModerate,
+  modBusy,
   onToggle,
   onPick,
   onBoost,
+  onMove,
 }: {
   site: Site;
   index: number;
+  total: number;
   open: boolean;
   compare: boolean;
   selected: boolean;
   boostCount: number;
   boostLocked: boolean;
   reviewStats?: ReviewStats;
+  canModerate: boolean;
+  modBusy: boolean;
   onToggle: () => void;
   onPick: () => void;
   onBoost: (domain: string) => void;
+  onMove: (domain: string, direction: "up" | "down") => void;
 }) {
   const first = index === 0;
 
   return (
     <div className={`rank-row border-t border-white/10 first:border-t-0 ${open ? "is-open" : ""}`}>
-      <button
-        type="button"
-        aria-expanded={compare ? selected : open}
-        onClick={compare ? onPick : onToggle}
-        className={`relative flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left sm:gap-3 sm:px-3 ${
-          selected ? "bg-white/[0.04]" : ""
-        }`}
-      >
-        <span className="pointer-events-none absolute inset-0 rank-spotlight" aria-hidden="true" />
-        <span
-          className={`rank-num w-5 shrink-0 font-sans text-[9px] tracking-[0.16em] ${
-            first ? "rank-num-gold" : "text-muted"
+      <div className="relative flex w-full items-center">
+        {canModerate && !compare ? (
+          <div className="pl-2 sm:pl-2.5">
+            <ModeratorRankControls
+              domain={site.domain}
+              index={index}
+              total={total}
+              busy={modBusy}
+              onMove={onMove}
+            />
+          </div>
+        ) : null}
+        <button
+          type="button"
+          aria-expanded={compare ? selected : open}
+          onClick={compare ? onPick : onToggle}
+          className={`relative flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5 text-left sm:gap-3 sm:px-3 ${
+            selected ? "bg-white/[0.04]" : ""
           }`}
         >
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        {compare ? (
+          <span className="pointer-events-none absolute inset-0 rank-spotlight" aria-hidden="true" />
           <span
-            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-              selected ? "border-[#c9a227] bg-[#c9a227]/text-[#050505]" : "border-white/20 text-transparent"
+            className={`rank-num w-5 shrink-0 font-sans text-[9px] tracking-[0.16em] ${
+              first ? "rank-num-gold" : "text-muted"
             }`}
-            aria-hidden="true"
           >
-            <span className="text-[9px] leading-none">✓</span>
+            {String(index + 1).padStart(2, "0")}
           </span>
-        ) : null}
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#0a0a0a] ring-1 ring-white/10">
-          <img src={site.icon} alt="" width={28} height={28} className="h-full w-full object-cover" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome">
-              {site.name}
+          {compare ? (
+            <span
+              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                selected ? "border-[#c9a227] bg-[#c9a227]/text-[#050505]" : "border-white/20 text-transparent"
+              }`}
+              aria-hidden="true"
+            >
+              <span className="text-[9px] leading-none">✓</span>
             </span>
-            {first && !compare ? <Trophy hot /> : null}
+          ) : null}
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#0a0a0a] ring-1 ring-white/10">
+            <img src={site.icon} alt="" width={28} height={28} className="h-full w-full object-cover" />
           </span>
-          <span className="mt-0.5 block truncate font-sans text-[10px] tracking-[0.04em] text-muted">
-            {site.domain}
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5">
+              <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome">
+                {site.name}
+              </span>
+              {first && !compare ? <Trophy hot /> : null}
+            </span>
+            <span className="mt-0.5 block truncate font-sans text-[10px] tracking-[0.04em] text-muted">
+              {site.domain}
+            </span>
           </span>
-        </span>
-        {!compare && boostCount > 0 ? (
-          <span className="mr-1 font-sans text-[9px] tabular-nums tracking-[0.08em] text-muted">
-            ↑{boostCount}
-          </span>
-        ) : null}
-        {!compare ? (
-          <svg
-            viewBox="0 0 12 12"
-            className={`chevron h-2.5 w-2.5 shrink-0 text-muted ${open ? "open" : ""}`}
-            aria-hidden="true"
-          >
-            <path fill="currentColor" d="M2.2 4.1 6 7.9l3.8-3.8.9.9L6 9.6 1.3 5z" />
-          </svg>
-        ) : null}
-      </button>
+          {!compare && boostCount > 0 ? (
+            <span className="mr-1 font-sans text-[9px] tabular-nums tracking-[0.08em] text-muted">
+              ↑{boostCount}
+            </span>
+          ) : null}
+          {!compare ? (
+            <svg
+              viewBox="0 0 12 12"
+              className={`chevron h-2.5 w-2.5 shrink-0 text-muted ${open ? "open" : ""}`}
+              aria-hidden="true"
+            >
+              <path fill="currentColor" d="M2.2 4.1 6 7.9l3.8-3.8.9.9L6 9.6 1.3 5z" />
+            </svg>
+          ) : null}
+        </button>
+      </div>
 
       {!compare ? (
         <div className={`fold ${open ? "open" : ""}`}>
@@ -225,21 +252,38 @@ function ComparePanel({ a, b, onClear }: { a: Site; b: Site; onClear: () => void
   );
 }
 
+async function loadSites(): Promise<Site[]> {
+  const res = await fetch("/api/sites", { cache: "no-store" });
+  if (!res.ok) return SEED_SITES;
+  const data = (await res.json()) as { sites?: Site[] };
+  return data.sites?.length ? data.sites : SEED_SITES;
+}
+
 export function SiteIndex() {
-  const groups = sitesByCategory();
-  const items = groups[0]?.items ?? [];
+  const { user } = useAuth();
+  const canModerate = isModerator(user);
+  const [items, setItems] = useState<Site[]>(SEED_SITES);
   const [openId, setOpenId] = useState<string | null>(null);
   const [compare, setCompare] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [modBusy, setModBusy] = useState(false);
+  const [modError, setModError] = useState<string | null>(null);
   const [boosts, setBoosts] = useState(() => ({
     lastBoostAt: {} as Record<string, number>,
     counts: {} as Record<string, number>,
   }));
   const [reviewStats, setReviewStats] = useState<Record<string, ReviewStats>>({});
 
+  const refreshSites = useCallback(async () => {
+    const sites = await loadSites();
+    setItems(sites);
+  }, []);
+
   useEffect(() => {
     setBoosts(readBoosts());
-  }, []);
+    void refreshSites();
+  }, [refreshSites]);
 
   useEffect(() => {
     if (!openId) return;
@@ -282,6 +326,26 @@ export function SiteIndex() {
     });
   };
 
+  const onMove = async (domain: string, direction: "up" | "down") => {
+    setModError(null);
+    setModBusy(true);
+    try {
+      const res = await fetch("/api/moderation/sites", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain, direction }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setModError(data.error ?? "Failed to reorder");
+        return;
+      }
+      await refreshSites();
+    } finally {
+      setModBusy(false);
+    }
+  };
+
   const pair = picked
     .map((domain) => items.find((site) => site.domain === domain))
     .filter(Boolean) as Site[];
@@ -298,21 +362,52 @@ export function SiteIndex() {
                   World Ranking
                 </h2>
               </div>
-              <button
-                type="button"
-                aria-pressed={compare}
-                onClick={() => {
-                  setCompare((value) => !value);
-                  setOpenId(null);
-                  setPicked([]);
-                }}
-                className={`rounded-full px-2.5 py-1 font-sans text-[9px] tracking-[0.2em] uppercase transition-colors ${
-                  compare ? "bg-white/10 text-chrome" : "text-muted hover:text-chrome/80"
-                }`}
-              >
-                compare
-              </button>
+              <div className="flex items-center gap-2">
+                {canModerate ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddOpen((value) => !value);
+                      setCompare(false);
+                      setPicked([]);
+                    }}
+                    className={`rounded-full px-2.5 py-1 font-sans text-[9px] tracking-[0.2em] uppercase transition-colors ${
+                      addOpen ? "bg-white/10 text-chrome" : "text-muted hover:text-chrome/80"
+                    }`}
+                  >
+                    add site
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  aria-pressed={compare}
+                  onClick={() => {
+                    setCompare((value) => !value);
+                    setOpenId(null);
+                    setPicked([]);
+                    setAddOpen(false);
+                  }}
+                  className={`rounded-full px-2.5 py-1 font-sans text-[9px] tracking-[0.2em] uppercase transition-colors ${
+                    compare ? "bg-white/10 text-chrome" : "text-muted hover:text-chrome/80"
+                  }`}
+                >
+                  compare
+                </button>
+              </div>
             </div>
+
+            {canModerate ? (
+              <ModeratorAddSitePanel
+                open={addOpen}
+                busy={modBusy}
+                onClose={() => setAddOpen(false)}
+                onCreated={() => void refreshSites()}
+              />
+            ) : null}
+
+            {modError ? (
+              <p className="moderator-error border-t border-white/10 px-3 py-2">{modError}</p>
+            ) : null}
 
             {compare ? (
               <p className="border-t border-white/10 px-3 py-2 font-sans text-[10px] tracking-[0.04em] text-faint">
@@ -325,15 +420,19 @@ export function SiteIndex() {
                 key={site.domain}
                 site={site}
                 index={index}
+                total={items.length}
                 open={openId === site.domain}
                 compare={compare}
                 selected={picked.includes(site.domain)}
                 boostCount={boosts.counts[site.domain] ?? 0}
                 boostLocked={!canBoost(site.domain, boosts)}
                 reviewStats={reviewStats[site.domain]}
+                canModerate={canModerate}
+                modBusy={modBusy}
                 onToggle={() => toggleOpen(site.domain)}
                 onPick={() => pick(site.domain)}
                 onBoost={onBoost}
+                onMove={(domain, direction) => void onMove(domain, direction)}
               />
             ))}
           </div>

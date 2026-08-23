@@ -7,7 +7,7 @@ import {
 import { createClient } from "./supabase/server";
 import { supabaseConfigured } from "./supabase/client";
 import { adminConfigured, createAdminClient } from "./supabase/admin";
-import { VALID_DOMAINS } from "./sites";
+import { siteExists } from "./sites-server";
 
 type RawReview = {
   id: string;
@@ -72,7 +72,7 @@ export async function fetchReviews(
   stats: ReviewStats;
   userReview: Review | null;
 }> {
-  if (!VALID_DOMAINS.includes(domain) || !supabaseConfigured()) {
+  if (!supabaseConfigured() || !(await siteExists(domain))) {
     return { reviews: [], stats: computeStats([]), userReview: null };
   }
 
@@ -126,7 +126,7 @@ export async function submitReview(
   userId: string,
   payload: ReviewPayload,
 ): Promise<{ created: boolean }> {
-  if (!VALID_DOMAINS.includes(domain)) {
+  if (!(await siteExists(domain))) {
     throw new Error("Invalid site");
   }
 
@@ -203,7 +203,7 @@ export async function submitReviewResponse(reviewId: string, userId: string, bod
 
 /** Moderator delete — uses service role so it can remove any review. */
 export async function deleteReviewAsModerator(reviewId: string, domain: string) {
-  if (!VALID_DOMAINS.includes(domain)) {
+  if (!(await siteExists(domain))) {
     throw new Error("Invalid site");
   }
 
