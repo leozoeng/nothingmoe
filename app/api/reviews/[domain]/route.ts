@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionUser, isUserBanned } from "@/lib/auth-server";
-import { isModerator } from "@/lib/moderation";
+import { getSessionUser } from "@/lib/auth-server";
+import { isModerator, isUserBanned } from "@/lib/moderation";
 import { assertNotBanned } from "@/lib/moderation-server";
 import {
   deleteReviewAsModerator,

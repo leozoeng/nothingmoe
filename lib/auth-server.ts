@@ -15,10 +15,6 @@ export type SessionUser = {
   ownedSites: string[];
 };
 
-export function isUserBanned(user: SessionUser | null | undefined): boolean {
-  return Boolean(user?.profile?.banned_at);
-}
-
 export async function getSessionUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const {

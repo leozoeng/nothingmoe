@@ -12,8 +12,7 @@ import {
 import type { Site } from "@/lib/sites";
 import { getAnikuraDemoReviews } from "@/lib/demo-reviews";
 import { useDemoMode, useOwnerPreview } from "@/lib/demo-mode";
-import { isModerator, REVIEW_HONESTY_NOTICE } from "@/lib/moderation";
-import { isUserBanned } from "@/lib/auth-server";
+import { isModerator, isUserBanned, REVIEW_HONESTY_NOTICE } from "@/lib/moderation";
 import { useAuth } from "./auth-provider";
 import { SiteOverview } from "./site-overview";
 import { SiteOwnerPanel } from "./site-owner-panel";
