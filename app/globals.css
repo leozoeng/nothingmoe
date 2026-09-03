@@ -28,6 +28,20 @@ html[data-theme="dark"] {
   --glass-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   --input-bg: rgba(0, 0, 0, 0.45);
   --modal-bg: rgba(2, 2, 2, 0.92);
+  --modal-panel-bg: linear-gradient(180deg, rgba(28, 28, 28, 0.98) 0%, rgba(10, 10, 10, 0.99) 42%, #080808 100%);
+  --modal-panel-border: rgba(255, 255, 255, 0.12);
+  --modal-panel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 28px 80px rgba(0, 0, 0, 0.72);
+  --modal-tabs-bg: rgba(0, 0, 0, 0.55);
+  --modal-tabs-border: rgba(255, 255, 255, 0.08);
+  --modal-glow: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 68%);
+  --modal-close-border: rgba(255, 255, 255, 0.1);
+  --modal-close-bg: rgba(255, 255, 255, 0.04);
+  --modal-close-hover-bg: rgba(255, 255, 255, 0.08);
+  --modal-close-hover-border: rgba(255, 255, 255, 0.22);
+  --modal-close-hover-color: #fff;
+  --auth-error-border: rgba(255, 120, 145, 0.28);
+  --auth-error-bg: rgba(255, 90, 120, 0.08);
+  --auth-error-color: #ffc8d4;
   --overlay: rgba(0, 0, 0, 0.62);
   --banner-scrim: linear-gradient(180deg, rgba(5, 5, 5, 0.08) 0%, rgba(5, 5, 5, 0.55) 72%, #050505 100%),
     radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255, 255, 255, 0.04), transparent 70%);
@@ -83,6 +97,20 @@ html[data-theme="light"] {
   --glass-shadow: 0 18px 40px rgba(17, 17, 20, 0.08);
   --input-bg: rgba(255, 255, 255, 0.92);
   --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-panel-bg: linear-gradient(180deg, #ffffff 0%, #f7f7f9 55%, #f1f1f4 100%);
+  --modal-panel-border: rgba(17, 17, 20, 0.12);
+  --modal-panel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 28px 70px rgba(17, 17, 20, 0.16);
+  --modal-tabs-bg: rgba(17, 17, 20, 0.06);
+  --modal-tabs-border: rgba(17, 17, 20, 0.1);
+  --modal-glow: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(17, 17, 20, 0.05), transparent 68%);
+  --modal-close-border: rgba(17, 17, 20, 0.12);
+  --modal-close-bg: rgba(17, 17, 20, 0.04);
+  --modal-close-hover-bg: rgba(17, 17, 20, 0.08);
+  --modal-close-hover-border: rgba(17, 17, 20, 0.2);
+  --modal-close-hover-color: #111114;
+  --auth-error-border: rgba(185, 28, 28, 0.22);
+  --auth-error-bg: rgba(254, 226, 226, 0.9);
+  --auth-error-color: #991b1b;
   --overlay: rgba(17, 17, 20, 0.35);
   --banner-scrim: linear-gradient(180deg, rgba(236, 236, 239, 0.15) 0%, rgba(236, 236, 239, 0.72) 72%, #ececef 100%),
     radial-gradient(ellipse 80% 60% at 50% 100%, rgba(17, 17, 20, 0.04), transparent 70%);
@@ -1541,7 +1569,7 @@ a {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(2, 2, 2, 0.92);
+  background: var(--overlay);
   backdrop-filter: blur(20px) saturate(120%);
   -webkit-backdrop-filter: blur(20px) saturate(120%);
   cursor: pointer;
@@ -1555,12 +1583,9 @@ a {
   max-width: 26rem;
   overflow: hidden;
   border-radius: 1.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background:
-    linear-gradient(180deg, rgba(28, 28, 28, 0.98) 0%, rgba(10, 10, 10, 0.99) 42%, #080808 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 28px 80px rgba(0, 0, 0, 0.72);
+  border: 1px solid var(--modal-panel-border);
+  background: var(--modal-panel-bg);
+  box-shadow: var(--modal-panel-shadow);
   padding: 1.75rem 1.65rem 1.5rem;
   animation: auth-modal-rise-in 0.38s var(--ease) both;
 }
@@ -1570,7 +1595,7 @@ a {
   position: absolute;
   inset: -40% -20% auto;
   height: 55%;
-  background: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 68%);
+  background: var(--modal-glow);
   opacity: 0.6;
 }
 
@@ -1583,9 +1608,9 @@ a {
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--modal-close-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--modal-close-bg);
   color: var(--text-dim);
   transition:
     color 0.25s var(--ease),
@@ -1594,9 +1619,9 @@ a {
 }
 
 .auth-modal-close:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--modal-close-hover-color);
+  border-color: var(--modal-close-hover-border);
+  background: var(--modal-close-hover-bg);
 }
 
 .auth-modal-brand {
@@ -1652,8 +1677,8 @@ a {
   margin-top: 1.35rem;
   padding: 0.28rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--modal-tabs-border);
+  background: var(--modal-tabs-bg);
 }
 
 .auth-modal-tab {
@@ -1716,12 +1741,12 @@ a {
   margin: 0;
   padding: 0.55rem 0.75rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 120, 145, 0.28);
-  background: rgba(255, 90, 120, 0.08);
+  border: 1px solid var(--auth-error-border);
+  background: var(--auth-error-bg);
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 1.45;
-  color: #ffc8d4;
+  color: var(--auth-error-color);
 }
 
 .auth-modal-submit {
@@ -2477,15 +2502,6 @@ html[data-theme="light"] .review-honesty-notice {
   border-color: rgba(180, 120, 20, 0.22);
   background: rgba(255, 196, 90, 0.14);
   color: rgba(90, 60, 10, 0.82);
-}
-
-html[data-theme="light"] .auth-modal,
-html[data-theme="light"] .auth-modal-card {
-  background: var(--modal-bg);
-}
-
-html[data-theme="light"] .auth-modal-backdrop {
-  background: var(--overlay);
 }
 
 html[data-theme="light"] .boost-chip {
