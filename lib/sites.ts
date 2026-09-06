@@ -35,6 +35,24 @@ export const categoryMeta: { id: CategoryId; label: string; empty: string }[] = 
 /** Fallback seed list when Supabase is unavailable. */
 export const SEED_SITES: Site[] = [
   {
+    slug: "animex",
+    name: "AnimeX",
+    domain: "animex.one",
+    href: "https://animex.one",
+    icon: "/sites/animex.png",
+    category: "japanese",
+    reason: "stream + discover",
+    line: "HD anime with subs & dubs — watch together, AniList sync, and a huge catalog.",
+    started: "2025",
+    featureList: [
+      "HD sub & dub",
+      "Watch together",
+      "AniList sync",
+      "No ads",
+    ],
+    seed: { ui: 95, ux: 93, catalog: 96, features: 92 },
+  },
+  {
     slug: "anilight",
     name: "AniLight",
     domain: "anilight.live",
