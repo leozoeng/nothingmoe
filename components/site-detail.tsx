@@ -1,35 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import {
-  computeStats,
-  mergeScores,
-  SCORE_LABELS,
-  scoreTierClass,
-  type Review,
-  type ReviewStats,
-} from "@/lib/scores";
-import type { Site } from "@/lib/sites";
-import { getAnikuraDemoReviews } from "@/lib/demo-reviews";
-import { useDemoMode, useOwnerPreview } from "@/lib/demo-mode";
-import { isModerator, isUserBanned, REVIEW_HONESTY_NOTICE } from "@/lib/moderation";
-import { useAuth } from "./auth-provider";
-import { SiteOverview } from "./site-overview";
-import { SiteOwnerPanel } from "./site-owner-panel";
-import { GradeDisplay, GradePicker } from "./grade-rating";
-import { UserAvatar } from "./user-avatar";
-
-function DiscordMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"
-      />
-    </svg>
-  );
-}
+import { type Site, getDomainAge } from "@/lib/sites";
+import type { SiteHealth } from "@/lib/site-health";
+import { SiteGallery } from "./site-gallery";
 
 function OpenMark() {
   return (
@@ -42,469 +15,55 @@ function OpenMark() {
   );
 }
 
+function DiscordMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.02 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z"
+      />
+    </svg>
+  );
+}
+
+function TelegramMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"
+      />
+    </svg>
+  );
+}
+
 function ActionChip({
   href,
   label,
-  variant = "open",
-  external = true,
 }: {
   href: string;
   label: string;
-  variant?: "open" | "discord" | "view";
-  external?: boolean;
 }) {
-  const className = `action-chip ${
-    variant === "discord"
-      ? "action-chip-discord"
-      : variant === "view"
-        ? "action-chip-view"
-        : "action-chip-open"
-  }`;
-
-  const inner = (
-    <>
+  return (
+    <a href={href} target="_blank" rel="noreferrer noopener" className="action-chip action-chip-open">
       <span className="action-chip-shine" aria-hidden="true" />
-      {variant === "discord" ? <DiscordMark /> : variant === "open" ? <OpenMark /> : null}
+      <OpenMark />
       <span>{label}</span>
-    </>
-  );
-
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer noopener" className={className}>
-        {inner}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className={className}>
-      {inner}
-    </Link>
+    </a>
   );
 }
 
-function ScoreSlider({
-  label,
-  value,
-  onChange,
+export function SiteDetail({
+  site,
+  health,
 }: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
+  site: Site;
+  health?: SiteHealth;
 }) {
-  return (
-    <label className="block space-y-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-sans text-[10px] tracking-[0.12em] text-muted uppercase">
-          {label}
-        </span>
-        <span className="font-sans text-[10px] tabular-nums text-chrome/55">{value}</span>
-      </div>
-      <input
-        type="range"
-        min={1}
-        max={100}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="score-slider w-full"
-      />
-    </label>
-  );
-}
-
-function ReviewCard({
-  review,
-  isOwner,
-  canModerate,
-  domain,
-  onResponded,
-}: {
-  review: Review;
-  isOwner: boolean;
-  canModerate: boolean;
-  domain: string;
-  onResponded: () => void;
-}) {
-  const [replyOpen, setReplyOpen] = useState(false);
-  const [replyBody, setReplyBody] = useState(review.response?.body ?? "");
-  const [replySaving, setReplySaving] = useState(false);
-  const [replyError, setReplyError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [moderating, setModerating] = useState<"ban" | "delete" | null>(null);
-
-  const date = new Date(review.created_at).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  const submitReply = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setReplySaving(true);
-    setReplyError(null);
-
-    try {
-      const res = await fetch(`/api/reviews/response/${review.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: replyBody }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Failed to post response");
-      setReplyOpen(false);
-      onResponded();
-    } catch (err) {
-      setReplyError(err instanceof Error ? err.message : "Failed to post response");
-    } finally {
-      setReplySaving(false);
-    }
-  };
-
-
-  const moderateUser = async (action: "ban" | "delete") => {
-    if (!canModerate || !review.user_id || moderating) return;
-    const label = action === "ban" ? "Ban this account from reviewing?" : "Permanently delete this account?";
-    const ok = window.confirm(
-      action === "ban"
-        ? `${label} They will not be able to post or update reviews.`
-        : `${label} This cannot be undone.`,
-    );
-    if (!ok) return;
-
-    setModerating(action);
-    setDeleteError(null);
-    try {
-      const res = await fetch("/api/moderation/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: review.user_id,
-          action,
-          reason:
-            action === "ban"
-              ? "Banned for review abuse (fake scores / reputation manipulation)."
-              : undefined,
-        }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Moderation action failed");
-      onResponded();
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Moderation action failed");
-    } finally {
-      setModerating(null);
-    }
-  };
-
-  const deleteReview = async () => {
-    if (!canModerate || deleting) return;
-    const ok = window.confirm("Delete this review? Scores will recalculate.");
-    if (!ok) return;
-
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      const res = await fetch(`/api/reviews/${encodeURIComponent(domain)}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reviewId: review.id }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Failed to delete review");
-      onResponded();
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete review");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  return (
-    <article className="site-review">
-      <div className="site-review-header">
-        <UserAvatar name={review.author} src={review.authorAvatarUrl} size="md" />
-        <div className="site-review-meta min-w-0 flex-1">
-          <p className="site-review-byline">
-            <span className="site-review-author">{review.author}</span>
-            <span className="site-review-rated"> rated </span>
-            <GradeDisplay value={review.stars} size="sm" />
-            <span className="site-review-ranked"> rank</span>
-          </p>
-          <time className="site-review-date">{date}</time>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          {canModerate ? (
-            <div className="flex flex-col items-end gap-1.5">
-              <button
-                type="button"
-                onClick={() => void deleteReview()}
-                disabled={deleting || Boolean(moderating)}
-                className="action-chip action-chip-view !px-2.5 !py-1.5"
-              >
-                <span className="action-chip-shine" aria-hidden="true" />
-                <span>{deleting ? "deleting..." : "delete review"}</span>
-              </button>
-              {review.user_id ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void moderateUser("ban")}
-                    disabled={deleting || Boolean(moderating)}
-                    className="action-chip action-chip-view !px-2.5 !py-1.5"
-                  >
-                    <span className="action-chip-shine" aria-hidden="true" />
-                    <span>{moderating === "ban" ? "banning..." : "ban account"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void moderateUser("delete")}
-                    disabled={deleting || Boolean(moderating)}
-                    className="action-chip action-chip-view !px-2.5 !py-1.5"
-                  >
-                    <span className="action-chip-shine" aria-hidden="true" />
-                    <span>{moderating === "delete" ? "removing..." : "delete account"}</span>
-                  </button>
-                </>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </div>
-      <p className="site-review-body">{review.body}</p>
-      {deleteError ? (
-        <p className="mt-2 font-sans text-[11px] text-[#ffb7c5]">{deleteError}</p>
-      ) : null}
-      <div className="site-review-scores">
-        {SCORE_LABELS.map(({ key, label }) => {
-          const value = review[`score_${key}` as keyof Review] as number;
-
-          return (
-            <span key={key} className="site-review-score">
-              {label}{" "}
-              <strong className={scoreTierClass(value)}>{value}</strong>
-            </span>
-          );
-        })}
-      </div>
-
-      {review.response ? (
-        <div className="review-response">
-          <p className="review-response-label">owner reply</p>
-          <p className="review-response-body">{review.response.body}</p>
-        </div>
-      ) : null}
-
-      {isOwner ? (
-        <div className="mt-4">
-          {!replyOpen ? (
-            <button
-              type="button"
-              onClick={() => setReplyOpen(true)}
-              className="action-chip action-chip-view"
-            >
-              <span className="action-chip-shine" aria-hidden="true" />
-              <span>{review.response ? "edit reply" : "respond"}</span>
-            </button>
-          ) : (
-            <form onSubmit={submitReply} className="space-y-3">
-              <textarea
-                value={replyBody}
-                onChange={(event) => setReplyBody(event.target.value)}
-                rows={3}
-                maxLength={2000}
-                placeholder="your response..."
-                className="auth-input min-h-[80px] resize-y"
-              />
-              {replyError ? (
-                <p className="font-sans text-[11px] text-[#ffb7c5]">{replyError}</p>
-              ) : null}
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" disabled={replySaving} className="action-chip action-chip-open">
-                  <span className="action-chip-shine" aria-hidden="true" />
-                  <span>{replySaving ? "posting..." : "post reply"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReplyOpen(false)}
-                  className="action-chip action-chip-view"
-                >
-                  <span className="action-chip-shine" aria-hidden="true" />
-                  <span>cancel</span>
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner: boolean }) {
-  const { user, openAuth } = useAuth();
-  const demoMode = useDemoMode();
-  const ownerPreview = useOwnerPreview();
-  const [site, setSite] = useState(initialSite);
-  const canEdit = isOwner || ownerPreview;
-  const canModerate = isModerator(user);
-  const [customizeOpen, setCustomizeOpen] = useState(false);
-  const isAnikuraDemo = demoMode && site.domain === "anikura.club";
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats>(() => computeStats([]));
-  const [userReview, setUserReview] = useState<Review | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [stars, setStars] = useState(0);
-  const [scoreUi, setScoreUi] = useState(50);
-  const [scoreUx, setScoreUx] = useState(50);
-  const [scoreCatalog, setScoreCatalog] = useState(50);
-  const [scoreFeatures, setScoreFeatures] = useState(50);
-  const [body, setBody] = useState("");
-
-  const displayScores = mergeScores(site.seed, stats);
-  const displayStars = stats.avgStars ?? null;
-  const visibleReviews =
-    canModerate || !userReview
-      ? reviews
-      : reviews.filter((review) => review.id !== userReview.id);
-
-  const loadReviews = useCallback(async () => {
-    if (isAnikuraDemo) {
-      const data = getAnikuraDemoReviews();
-      setReviews(data.reviews);
-      setStats(data.stats);
-      setUserReview(data.userReview);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/reviews/${encodeURIComponent(site.domain)}`);
-      if (!res.ok) throw new Error("Failed to load reviews");
-      const data = (await res.json()) as {
-        reviews: Review[];
-        stats: ReviewStats;
-        userReview: Review | null;
-      };
-      setReviews(data.reviews);
-      setStats(data.stats);
-      setUserReview(data.userReview);
-      setError(null);
-    } catch {
-      setError("Could not load reviews.");
-    } finally {
-      setLoading(false);
-    }
-  }, [site.domain, isAnikuraDemo]);
-
-  useEffect(() => {
-    void loadReviews();
-  }, [loadReviews]);
-
-  useEffect(() => {
-    if (ownerPreview) setCustomizeOpen(true);
-  }, [ownerPreview]);
-
-  useEffect(() => {
-    if (!userReview) return;
-    setStars(userReview.stars);
-    setScoreUi(userReview.score_ui);
-    setScoreUx(userReview.score_ux);
-    setScoreCatalog(userReview.score_catalog);
-    setScoreFeatures(userReview.score_features);
-    setBody(userReview.body);
-  }, [userReview]);
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!user) {
-      openAuth("sign-in");
-      return;
-    }
-
-    if (isAnikuraDemo) {
-      setError("preview mode — reviews aren't saved. sign up for real to post.");
-      return;
-    }
-
-    if (stars < 1 || stars > 5) {
-      setError("Pick a rank from S to D");
-      return;
-    }
-
-    const trimmedBody = body.trim();
-    if (trimmedBody.length < 3) {
-      setError("Review needs at least 3 characters");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/reviews/${encodeURIComponent(site.domain)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          stars,
-          score_ui: scoreUi,
-          score_ux: scoreUx,
-          score_catalog: scoreCatalog,
-          score_features: scoreFeatures,
-          body: trimmedBody,
-        }),
-      });
-
-      const data = (await res.json()) as {
-        reviews?: Review[];
-        stats?: ReviewStats;
-        userReview?: Review | null;
-        error?: string;
-      };
-
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to save review");
-      }
-
-      setReviews(data.reviews ?? []);
-      setStats(data.stats ?? computeStats([]));
-      setUserReview(data.userReview ?? null);
-      setBody(trimmedBody);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save review");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const domainAge = getDomainAge(site.registeredDate);
 
   return (
     <div className="site-page">
-      <header className="site-page-hero">
-        <div className="site-page-banner" aria-hidden="true">
-          {site.banner ? (
-            <img src={site.banner} alt="" className="site-page-banner-img" />
-          ) : (
-            <div
-              className="site-page-banner-fallback"
-              style={{ backgroundImage: `url(${site.icon})` }}
-            />
-          )}
-          <div className="site-page-banner-scrim" />
-        </div>
-
-        <div className="site-page-hero-bar">
-          <Link href="/#sites" className="site-page-back">
-            ← index
-          </Link>
-        </div>
-      </header>
-
       <div className="site-page-hero-panel">
         <div className="site-page-hero-row">
           <img src={site.icon} alt="" width={100} height={100} className="site-page-icon" />
@@ -514,23 +73,70 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
               <span className="site-page-domain">{site.domain}</span>
               <span className="site-page-meta-dot" aria-hidden="true" />
               <span className="site-page-meta">est. {site.started}</span>
+              {site.hostingType ? (
+                <>
+                  <span className="site-page-meta-dot" aria-hidden="true" />
+                  <span
+                    className={`site-type-badge ${
+                      site.hostingType === "self-hosted"
+                        ? "site-type-badge-self"
+                        : "site-type-badge-scraper"
+                    }`}
+                  >
+                    {site.hostingType === "self-hosted" ? "self-hosted" : "scraper"}
+                  </span>
+                </>
+              ) : null}
+              {health ? (
+                <>
+                  <span className="site-page-meta-dot" aria-hidden="true" />
+                  <span
+                    className={`site-status-badge site-status-${health.status}`}
+                    title={health.message || `${health.status} (${health.latencyMs}ms)`}
+                  >
+                    <span className="site-status-icon" aria-hidden="true">
+                      {health.status === "operational" ? "●" : "▲"}
+                    </span>
+                    <span>{health.status === "operational" ? "Operational" : "Degraded"}</span>
+                    {health.status === "operational" && health.latencyMs ? (
+                      <span className="site-status-latency">{health.latencyMs}ms</span>
+                    ) : null}
+                    {health.status === "degraded" && health.code ? (
+                      <span className="site-status-latency">{health.code}</span>
+                    ) : null}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
           <div className="site-page-actions">
-            {canEdit ? (
-              <button
-                type="button"
-                onClick={() => setCustomizeOpen((value) => !value)}
-                className="action-chip action-chip-view"
+            {site.discord ? (
+              <a
+                href={site.discord}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="action-chip action-chip-discord"
+                title={`Join ${site.name} Discord`}
               >
                 <span className="action-chip-shine" aria-hidden="true" />
-                <span>{customizeOpen ? "close" : "customize page"}</span>
-              </button>
+                <DiscordMark />
+                <span>discord</span>
+              </a>
             ) : null}
-            <ActionChip href={site.href} label="open" variant="open" />
-            {site.discord ? (
-              <ActionChip href={site.discord} label="discord" variant="discord" />
+            {site.telegram ? (
+              <a
+                href={site.telegram}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="action-chip action-chip-telegram"
+                title={`Join ${site.name} Telegram`}
+              >
+                <span className="action-chip-shine" aria-hidden="true" />
+                <TelegramMark />
+                <span>telegram</span>
+              </a>
             ) : null}
+            <ActionChip href={site.href} label="open" />
           </div>
         </div>
       </div>
@@ -544,131 +150,82 @@ export function SiteDetail({ site: initialSite, isOwner }: { site: Site; isOwner
           </section>
         ) : null}
 
-        <SiteOverview
-          scores={displayScores}
-          stats={stats}
-          displayStars={displayStars}
-          featureList={site.featureList}
-        />
-
-        {canEdit && customizeOpen ? (
-          <div className="site-page-main">
-            <div className="site-page-content">
-              <SiteOwnerPanel
-                site={site}
-                onSaved={setSite}
-                onClose={() => setCustomizeOpen(false)}
-              />
-            </div>
-          </div>
-        ) : null}
-
-        <section className="site-page-reviews">
-          {isAnikuraDemo ? (
-            <p className="site-page-demo-note">
-              preview mode — signed in as {user?.profile?.display_name ?? "you"} · try the review
-              form below
-            </p>
-          ) : null}
-
-          <div className="site-page-reviews-head">
-            <div>
-              <h2 className="site-page-section-title">reviews</h2>
-              <p className="site-page-section-sub">
-                {stats.count > 0
-                  ? `${stats.count} from the community`
-                  : "be the first to weigh in"}
-              </p>
-            </div>
-          </div>
-
-          <div className="site-page-review-compose">
-            <p className="site-page-kicker">
-              {user && userReview ? "edit your review" : "write a review"}
-            </p>
-
-            {!user ? (
-              <div className="site-page-review-form">
-                <p className="site-page-empty">sign in to rate {site.name}.</p>
-                <button
-                  type="button"
-                  onClick={() => openAuth("sign-in")}
-                  className="action-chip action-chip-open"
-                >
-                  <span className="action-chip-shine" aria-hidden="true" />
-                  <span>sign in to review</span>
-                </button>
+        <section className="site-specs-section" aria-label="Site specifications">
+          <div className="site-specs-row">
+            {domainAge ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Domain Registered</span>
+                <p className="site-spec-value">{domainAge.age}</p>
+                <p className="site-spec-sub">{domainAge.date}</p>
               </div>
-            ) : isUserBanned(user) ? (
-              <div className="site-page-review-form">
-                <p className="site-page-empty">
-                  {user.profile?.banned_reason?.trim() ||
-                    "Your account is banned from posting reviews."}
+            ) : null}
+
+            {site.hostingType ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Hosting & Streams</span>
+                <p className="site-spec-value">
+                  {site.hostingType === "self-hosted" ? "Self-Hosted" : "Scraper / Embeds"}
+                </p>
+                <p className="site-spec-sub">
+                  {site.hostingType === "self-hosted"
+                    ? "Direct video storage & CDN servers"
+                    : "Aggregates 3rd-party video embeds"}
                 </p>
               </div>
-            ) : (
-              <form onSubmit={submit} className="site-page-review-form">
-                <p className="review-honesty-notice">{REVIEW_HONESTY_NOTICE}</p>
-                <GradePicker value={stars} onChange={setStars} />
+            ) : null}
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <ScoreSlider label="ui" value={scoreUi} onChange={setScoreUi} />
-                  <ScoreSlider label="ux" value={scoreUx} onChange={setScoreUx} />
-                  <ScoreSlider label="catalog" value={scoreCatalog} onChange={setScoreCatalog} />
-                  <ScoreSlider label="features" value={scoreFeatures} onChange={setScoreFeatures} />
-                </div>
+            {site.catalogSize ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Catalog Size</span>
+                <p className="site-spec-value">{site.catalogSize.value}</p>
+                <p className="site-spec-sub">{site.catalogSize.sub}</p>
+              </div>
+            ) : null}
 
-                <label className="site-page-field">
-                  <span>review</span>
-                  <textarea
-                    value={body}
-                    onChange={(event) => setBody(event.target.value)}
-                    rows={4}
-                    maxLength={2000}
-                    placeholder="what hits, what misses..."
-                    className="auth-input min-h-[100px] resize-y"
-                  />
-                </label>
+            {site.adExperience ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Ad Experience</span>
+                <p className="site-spec-value">{site.adExperience.value}</p>
+                <p className="site-spec-sub">{site.adExperience.sub}</p>
+              </div>
+            ) : null}
 
-                {error ? <p className="site-page-error">{error}</p> : null}
+            {site.subtitles ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Subtitles</span>
+                <p className="site-spec-value">{site.subtitles.value}</p>
+                <p className="site-spec-sub">{site.subtitles.sub}</p>
+              </div>
+            ) : null}
 
-                <div className="flex flex-wrap gap-2">
-                  <button type="submit" disabled={submitting} className="action-chip action-chip-open">
-                    <span className="action-chip-shine" aria-hidden="true" />
-                    <span>
-                      {submitting
-                        ? userReview
-                          ? "updating..."
-                          : "posting..."
-                        : userReview
-                          ? "update review"
-                          : "post review"}
-                    </span>
-                  </button>
-                </div>
-              </form>
-            )}
+            {site.audio ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Audio</span>
+                <p className="site-spec-value">{site.audio.value}</p>
+                <p className="site-spec-sub">{site.audio.sub}</p>
+              </div>
+            ) : null}
+
+            {health ? (
+              <div className="site-spec-item">
+                <span className="site-spec-label">Live Status</span>
+                <p className={`site-spec-value site-spec-health-${health.status}`}>
+                  <span className="site-spec-status-symbol" aria-hidden="true">
+                    {health.status === "operational" ? "●" : "▲"}
+                  </span>{" "}
+                  {health.status === "operational" ? "Operational" : "Degraded"}
+                </p>
+                <p className="site-spec-sub">
+                  {health.status === "operational"
+                    ? `${health.latencyMs ?? 0}ms response time`
+                    : health.message || "Origin unreachable"}
+                </p>
+              </div>
+            ) : null}
           </div>
-
-          {loading ? (
-            <p className="site-page-empty mt-2">loading...</p>
-          ) : visibleReviews.length > 0 ? (
-            <div className="site-page-review-list">
-              {visibleReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  isOwner={canEdit}
-                  canModerate={canModerate}
-                  domain={site.domain}
-                  onResponded={() => void loadReviews()}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="site-page-empty mt-2">nothing yet.</p>
-          )}
         </section>
+
+        <SiteGallery slug={site.slug} name={site.name} />
       </div>
     </div>
   );

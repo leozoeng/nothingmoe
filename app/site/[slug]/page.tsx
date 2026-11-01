@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSessionUser } from "@/lib/auth-server";
 import { fetchSitePage, mergeSiteWithPage } from "@/lib/site-pages-server";
 import { fetchAllSites, fetchSiteBySlug } from "@/lib/sites-server";
+import { checkSiteHealth } from "@/lib/site-health";
 import { SiteDetail } from "@/components/site-detail";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -38,9 +38,11 @@ export default async function SitePage({ params }: Params) {
   const site = await fetchSiteBySlug(slug);
   if (!site) notFound();
 
-  const [page, session] = await Promise.all([fetchSitePage(site.domain), getSessionUser()]);
+  const [page, health] = await Promise.all([
+    fetchSitePage(site.domain),
+    checkSiteHealth(site.href),
+  ]);
   const merged = mergeSiteWithPage(site, page);
-  const isOwner = session ? session.ownedSites.includes(site.domain) : false;
 
-  return <SiteDetail site={merged} isOwner={isOwner} />;
+  return <SiteDetail site={merged} health={health} />;
 }

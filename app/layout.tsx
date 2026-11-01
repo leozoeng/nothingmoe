@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/components/auth-provider";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
@@ -44,8 +43,9 @@ export const metadata: Metadata = {
     "nothingmoe",
     "nothing moe",
     "anime",
+    "ani.pm",
+    "animex",
     "anilight",
-    "luna-stream",
     "anikura",
     "yumezone",
     "nekowatch",
@@ -103,10 +103,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ThemeProvider>
-          <AuthProvider>
-            <SiteHeader />
-            {children}
-          </AuthProvider>
+          <SiteHeader />
+          {children}
         </ThemeProvider>
       </body>
     </html>

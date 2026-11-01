@@ -14,4 +14,4 @@ export function isUserBanned(user: SessionUser | null | undefined): boolean {
 }
 
 export const REVIEW_HONESTY_NOTICE =
-  "Your scores shape this site's community census — rate from real use, and be honest. Fake reviews, review bombing, or deliberately inflating (or tanking) a site's standing will get your account permanently banned.";
+  "Your scores shape this site's community ratings — rate from real use, and be honest. Fake reviews, review bombing, or deliberately inflating (or tanking) a site's standing will get your account permanently banned.";

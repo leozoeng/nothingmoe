@@ -141,8 +141,8 @@ export function AuthModal({ open, mode: initialMode, onClose, onSuccess }: AuthM
           </h2>
           <p className="auth-modal-sub">
             {mode === "sign-in"
-              ? "Sign in to review sites and boost your favorites."
-              : "Create an account to join the community census and leave reviews."}
+              ? "Sign in to leave reviews."
+              : "Create an account to leave reviews."}
           </p>
         </div>
 

@@ -174,7 +174,7 @@ export function AdminDashboard({
           <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
             <div>
               <h2 className="font-sans text-[11px] tracking-[0.24em] text-chrome uppercase">
-                world ranking
+                anime streaming
               </h2>
               <p className="mt-1 font-sans text-[10px] text-muted">move sites up or down</p>
             </div>

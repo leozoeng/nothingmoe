@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { applyBoost, canBoost, readBoosts, writeBoosts } from "@/lib/boosts";
-import {
-  computeStats,
-  mergeScores,
-  type ReviewStats,
-} from "@/lib/scores";
+import { useState } from "react";
+import Link from "next/link";
 import type { Site } from "@/lib/sites";
-import { ScoreMeters } from "./score-meters";
-import { ActionChip } from "./site-detail";
+import type { SiteHealth } from "@/lib/site-health";
 import { Reveal } from "./reveal";
 
 function Trophy({ hot = false }: { hot?: boolean }) {
@@ -27,91 +21,26 @@ function Trophy({ hot = false }: { hot?: boolean }) {
   );
 }
 
-function VibeMeters({
-  site,
-  stats,
-  active,
-}: {
-  site: Site;
-  stats?: ReviewStats;
-  active: boolean;
-}) {
-  const merged = mergeScores(site.seed, stats ?? computeStats([]));
-
-  return <ScoreMeters scores={merged} active={active} label="community census" />;
-}
-
-function BoostButton({
-  domain,
-  count,
-  locked,
-  onBoost,
-}: {
-  domain: string;
-  count: number;
-  locked: boolean;
-  onBoost: (domain: string) => void;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={locked}
-      onClick={(event) => {
-        event.stopPropagation();
-        onBoost(domain);
-      }}
-      className={`boost-chip ${locked ? "is-locked" : ""}`}
-      aria-label={locked ? "Boost available again in 12 hours" : "Boost this site"}
-    >
-      <span className="boost-chip-shine" aria-hidden="true" />
-      <svg viewBox="0 0 24 24" className="h-3 w-3" aria-hidden="true">
-        <path
-          fill="currentColor"
-          d="M12 3.2 13.7 9H20l-5.1 3.7L16.6 19 12 15.5 7.4 19l1.7-6.3L4 9h6.3L12 3.2z"
-        />
-      </svg>
-      <span>{locked ? "boosted" : "boost"}</span>
-      <span className="tabular-nums text-chrome/45">{count}</span>
-    </button>
-  );
-}
-
 function SiteRow({
   site,
   index,
   open,
-  compare,
-  selected,
-  boostCount,
-  boostLocked,
-  reviewStats,
   onToggle,
-  onPick,
-  onBoost,
+  health,
 }: {
   site: Site;
   index: number;
   open: boolean;
-  compare: boolean;
-  selected: boolean;
-  boostCount: number;
-  boostLocked: boolean;
-  reviewStats?: ReviewStats;
   onToggle: () => void;
-  onPick: () => void;
-  onBoost: (domain: string) => void;
+  health?: SiteHealth;
 }) {
   const first = index === 0;
 
   return (
     <div className={`rank-row border-t border-white/10 first:border-t-0 ${open ? "is-open" : ""}`}>
-      <button
-        type="button"
-        aria-expanded={compare ? selected : open}
-        onClick={compare ? onPick : onToggle}
-        className={`relative flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left sm:gap-3 sm:px-3 ${
-          selected ? "bg-white/[0.04]" : ""
-        }`}
+      <div
+        onClick={onToggle}
+        className="relative flex w-full cursor-pointer items-center gap-2.5 px-2.5 py-2.5 text-left select-none sm:gap-3 sm:px-3"
       >
         <span className="pointer-events-none absolute inset-0 rank-spotlight" aria-hidden="true" />
         <span
@@ -121,36 +50,49 @@ function SiteRow({
         >
           {String(index + 1).padStart(2, "0")}
         </span>
-        {compare ? (
-          <span
-            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-              selected ? "border-[#c9a227] bg-[#c9a227]/text-[#050505]" : "border-white/20 text-transparent"
-            }`}
-            aria-hidden="true"
-          >
-            <span className="text-[9px] leading-none">✓</span>
+        <Link
+          href={`/site/${site.slug}`}
+          onClick={(event) => event.stopPropagation()}
+          className="group/site flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3"
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#0a0a0a] ring-1 ring-white/10 transition-transform group-hover/site:scale-105">
+            <img src={site.icon} alt="" width={28} height={28} className="h-full w-full object-cover" />
           </span>
-        ) : null}
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#0a0a0a] ring-1 ring-white/10">
-          <img src={site.icon} alt="" width={28} height={28} className="h-full w-full object-cover" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome">
-              {site.name}
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5">
+              <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome transition-colors group-hover/site:text-white group-hover/site:underline underline-offset-2">
+                {site.name}
+              </span>
+              {first ? <Trophy hot /> : null}
+              {health ? (
+                <span
+                  className={`site-row-health-badge site-row-health-${health.status}`}
+                  title={health.message || (health.latencyMs ? `${health.latencyMs}ms latency` : "")}
+                >
+                  <span className="site-row-health-dot" aria-hidden="true" />
+                  <span className="site-row-health-label">
+                    {health.status === "operational"
+                      ? health.latencyMs ? `${health.latencyMs}ms` : "online"
+                      : "degraded"}
+                  </span>
+                </span>
+              ) : null}
             </span>
-            {first && !compare ? <Trophy hot /> : null}
+            <span className="mt-0.5 block truncate font-sans text-[10px] tracking-[0.04em] text-muted">
+              {site.domain}
+            </span>
           </span>
-          <span className="mt-0.5 block truncate font-sans text-[10px] tracking-[0.04em] text-muted">
-            {site.domain}
-          </span>
-        </span>
-        {!compare && boostCount > 0 ? (
-          <span className="mr-1 font-sans text-[9px] tabular-nums tracking-[0.08em] text-muted">
-            ↑{boostCount}
-          </span>
-        ) : null}
-        {!compare ? (
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={open ? `Collapse ${site.name} description` : `Expand ${site.name} description`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggle();
+          }}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-chrome"
+        >
           <svg
             viewBox="0 0 12 12"
             className={`chevron h-2.5 w-2.5 shrink-0 text-muted ${open ? "open" : ""}`}
@@ -158,78 +100,15 @@ function SiteRow({
           >
             <path fill="currentColor" d="M2.2 4.1 6 7.9l3.8-3.8.9.9L6 9.6 1.3 5z" />
           </svg>
-        ) : null}
-      </button>
-
-      {!compare ? (
-        <div className={`fold ${open ? "open" : ""}`}>
-          <div className="fold-inner" inert={open ? undefined : true}>
-            <div className="mx-2.5 mb-2.5 space-y-3.5 border-t border-white/[0.06] px-1 pb-1 pt-2.5 sm:mx-3">
-              <p className="font-sans text-[11px] leading-relaxed text-muted">{site.line}</p>
-              <VibeMeters site={site} stats={reviewStats} active={open} />
-              <div className="flex flex-wrap gap-2 pt-0.5">
-                <ActionChip href={`/site/${site.slug}`} label="view page" variant="view" external={false} />
-                <ActionChip href={site.href} label="open" variant="open" />
-                {site.discord ? (
-                  <ActionChip href={site.discord} label="discord" variant="discord" />
-                ) : null}
-                <BoostButton
-                  domain={site.domain}
-                  count={boostCount}
-                  locked={boostLocked}
-                  onBoost={onBoost}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function ComparePanel({
-  a,
-  b,
-  reviewStats,
-  onClear,
-}: {
-  a: Site;
-  b: Site;
-  reviewStats: Record<string, ReviewStats>;
-  onClear: () => void;
-}) {
-  return (
-    <div className="compare-panel mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
-      <div className="flex items-center justify-between px-3 py-2.5">
-        <p className="font-sans text-[10px] tracking-[0.24em] text-muted uppercase">compare</p>
-        <button
-          type="button"
-          onClick={onClear}
-          className="font-sans text-[10px] tracking-[0.18em] text-faint uppercase transition-colors hover:text-muted"
-        >
-          clear
         </button>
       </div>
-      <div className="grid gap-0 border-t border-white/10 sm:grid-cols-2">
-        {[a, b].map((site) => (
-          <div key={site.domain} className="space-y-3 border-white/10 p-3 sm:border-r sm:last:border-r-0">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 overflow-hidden rounded-[8px] ring-1 ring-white/10">
-                <img src={site.icon} alt="" width={28} height={28} className="h-full w-full object-cover" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-sans text-[13px] font-medium text-chrome">{site.name}</p>
-                <p className="truncate font-sans text-[10px] text-muted">{site.reason}</p>
-              </div>
-            </div>
-            <VibeMeters site={site} stats={reviewStats[site.domain]} active />
-            <div className="flex flex-wrap gap-2">
-              <ActionChip href={`/site/${site.slug}`} label="view page" variant="view" external={false} />
-              <ActionChip href={site.href} label="open" variant="open" />
-            </div>
+
+      <div className={`fold ${open ? "open" : ""}`}>
+        <div className="fold-inner" inert={open ? undefined : true}>
+          <div className="mx-2.5 mb-2.5 space-y-3.5 border-t border-white/[0.06] px-1 pb-1 pt-2.5 sm:mx-3">
+            <p className="font-sans text-[11px] leading-relaxed text-muted">{site.line}</p>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
@@ -237,84 +116,29 @@ function ComparePanel({
 
 export function SiteIndex({
   initialSites,
-  initialReviewStats,
+  healthMap = {},
 }: {
   initialSites: Site[];
-  initialReviewStats: Record<string, ReviewStats>;
+  healthMap?: Record<string, SiteHealth>;
 }) {
   const items = initialSites;
   const [openId, setOpenId] = useState<string | null>(null);
-  const [compare, setCompare] = useState(false);
-  const [picked, setPicked] = useState<string[]>([]);
-  const [boosts, setBoosts] = useState(() => ({
-    lastBoostAt: {} as Record<string, number>,
-    counts: {} as Record<string, number>,
-  }));
-  const reviewStats = initialReviewStats;
-
-  useEffect(() => {
-    setBoosts(readBoosts());
-  }, []);
 
   const toggleOpen = (domain: string) => {
     setOpenId((current) => (current === domain ? null : domain));
   };
-
-  const pick = (domain: string) => {
-    setPicked((current) => {
-      if (current.includes(domain)) return current.filter((id) => id !== domain);
-      if (current.length >= 2) return [current[1], domain];
-      return [...current, domain];
-    });
-  };
-
-  const onBoost = (domain: string) => {
-    setBoosts((current) => {
-      const base = current.lastBoostAt ? current : readBoosts();
-      if (!canBoost(domain, base)) return base;
-      const next = applyBoost(domain, base);
-      writeBoosts(next);
-      return next;
-    });
-  };
-
-  const pair = picked
-    .map((domain) => items.find((site) => site.domain === domain))
-    .filter(Boolean) as Site[];
 
   return (
     <section id="sites" className="relative z-10 px-6 pb-8 sm:px-10">
       <div className="mx-auto max-w-xl">
         <Reveal>
           <div className="glass overflow-hidden rounded-xl">
-            <div className="flex items-center justify-between gap-3 px-2.5 py-2.5 sm:px-3">
-              <div className="flex items-center gap-2">
-                <Trophy />
-                <h2 className="font-sans text-[11px] tracking-[0.28em] text-chrome uppercase">
-                  World Ranking
-                </h2>
-              </div>
-              <button
-                type="button"
-                aria-pressed={compare}
-                onClick={() => {
-                  setCompare((value) => !value);
-                  setOpenId(null);
-                  setPicked([]);
-                }}
-                className={`rounded-full px-2.5 py-1 font-sans text-[9px] tracking-[0.2em] uppercase transition-colors ${
-                  compare ? "bg-white/10 text-chrome" : "text-muted hover:text-chrome/80"
-                }`}
-              >
-                compare
-              </button>
+            <div className="flex items-center gap-2 px-2.5 py-2.5 sm:px-3">
+              <Trophy />
+              <h2 className="font-sans text-[11px] tracking-[0.28em] text-chrome uppercase">
+                Anime Streaming
+              </h2>
             </div>
-
-            {compare ? (
-              <p className="border-t border-white/10 px-3 py-2 font-sans text-[10px] tracking-[0.04em] text-faint">
-                pick two dens
-              </p>
-            ) : null}
 
             {items.map((site, index) => (
               <SiteRow
@@ -322,27 +146,12 @@ export function SiteIndex({
                 site={site}
                 index={index}
                 open={openId === site.domain}
-                compare={compare}
-                selected={picked.includes(site.domain)}
-                boostCount={boosts.counts[site.domain] ?? 0}
-                boostLocked={!canBoost(site.domain, boosts)}
-                reviewStats={reviewStats[site.domain]}
                 onToggle={() => toggleOpen(site.domain)}
-                onPick={() => pick(site.domain)}
-                onBoost={onBoost}
+                health={healthMap[site.slug]}
               />
             ))}
           </div>
         </Reveal>
-
-        {compare && pair.length === 2 ? (
-          <ComparePanel
-            a={pair[0]}
-            b={pair[1]}
-            reviewStats={reviewStats}
-            onClear={() => setPicked([])}
-          />
-        ) : null}
       </div>
     </section>
   );

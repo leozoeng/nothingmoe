@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/server";
+import { supabaseConfigured } from "./supabase/client";
 
 export type UserProfile = {
   id: string;
@@ -17,6 +18,8 @@ export type SessionUser = {
 };
 
 export async function getSessionUser(): Promise<SessionUser | null> {
+  if (!supabaseConfigured()) return null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -51,6 +54,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 }
 
 export async function isSiteOwner(userId: string, domain: string): Promise<boolean> {
+  if (!supabaseConfigured()) return false;
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("nothingmoe_site_owners")

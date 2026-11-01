@@ -1,7 +1,6 @@
 "use client";
 
 import { ThemeToggle } from "./theme-toggle";
-import { UserMenu } from "./user-menu";
 
 export function SiteHeader() {
   return (
@@ -15,7 +14,6 @@ export function SiteHeader() {
         </a>
         <div className="site-header-actions flex items-center gap-2">
           <ThemeToggle />
-          <UserMenu />
         </div>
       </div>
     </header>
