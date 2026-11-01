@@ -60,7 +60,7 @@ function SiteRow({
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome transition-colors group-hover/site:text-white group-hover/site:underline underline-offset-2">
+              <span className="truncate font-sans text-[13px] font-medium tracking-[-0.01em] text-chrome transition-colors group-hover/site:underline underline-offset-2">
                 {site.name}
               </span>
               {first ? <Trophy hot /> : null}
