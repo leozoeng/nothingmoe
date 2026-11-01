@@ -148,15 +148,15 @@ export const SEED_SITES: Site[] = [
     line: "A premium anime discovery platform. Browse trending, seasonal, and top-rated anime with cinematic visuals.",
     started: "2024",
     registeredDate: "2026-05-29",
-    hostingType: "scraper",
+    hostingType: "self-hosted",
     catalogSize: {
       value: "~4,500 titles",
       sub: "Curated trending & seasonal titles",
     },
     adExperience: {
-      value: "Player Embed Ads",
-      sub: "Scraper stream redirects & popups",
-      level: "popups",
+      value: "Zero Ads",
+      sub: "Direct stream, no popups",
+      level: "zero-ads",
     },
     subtitles: {
       value: "Softsubs",
