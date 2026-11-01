@@ -753,36 +753,37 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 9999px;
   font-family: var(--font-sans);
   font-size: 9px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
   line-height: 1.35;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .site-type-badge-self {
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #047857;
+  background: rgba(17, 17, 20, 0.06);
+  border: 1px solid rgba(17, 17, 20, 0.15);
+  color: var(--text-strong);
 }
 
 html[data-theme="dark"] .site-type-badge-self {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fafafa;
 }
 
 .site-type-badge-scraper {
-  background: rgba(17, 17, 20, 0.06);
-  border: 1px solid rgba(17, 17, 20, 0.15);
-  color: #4b5563;
+  background: rgba(17, 17, 20, 0.03);
+  border: 1px solid rgba(17, 17, 20, 0.1);
+  color: var(--text-faint-soft);
 }
 
 html[data-theme="dark"] .site-type-badge-scraper {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-dim);
 }
 
@@ -816,9 +817,9 @@ html[data-theme="dark"] .site-type-badge-scraper {
 }
 
 .site-status-operational {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.32);
-  color: #047857;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #065f46;
 }
 
 html[data-theme="dark"] .site-status-operational {
@@ -941,15 +942,15 @@ html[data-theme="dark"] .site-row-health-degraded {
 }
 
 .site-row-type-self {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.28);
-  color: #047857;
+  background: rgba(17, 17, 20, 0.06);
+  border: 1px solid rgba(17, 17, 20, 0.15);
+  color: var(--text-strong);
 }
 
 html[data-theme="dark"] .site-row-type-self {
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fafafa;
 }
 
 .site-row-type-scraper {
