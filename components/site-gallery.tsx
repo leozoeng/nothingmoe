@@ -28,6 +28,11 @@ const SITE_GALLERY: Record<string, GalleryItem[]> = {
     { src: "/screenshots/anikura/02-anime.jpg", title: "Episode Stream" },
     { src: "/screenshots/anikura/03-watch.jpg", title: "User Portal" },
   ],
+  nekomiru: [
+    { src: "/screenshots/nekomiru/01-home.jpg", title: "Home & Learning Feed" },
+    { src: "/screenshots/nekomiru/02-anime.jpg", title: "Anime & JLPT Vocabulary" },
+    { src: "/screenshots/nekomiru/03-watch.jpg", title: "Dual Subtitle Player" },
+  ],
   yumezone: [
     { src: "/screenshots/yumezone/01-home.jpg", title: "Home & Showcase" },
     { src: "/screenshots/yumezone/02-anime.jpg", title: "Watchlist & Browse" },

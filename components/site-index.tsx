@@ -37,7 +37,7 @@ function SiteRow({
   const first = index === 0;
 
   return (
-    <div className={`rank-row border-t border-white/10 first:border-t-0 ${open ? "is-open" : ""}`}>
+    <div className={`rank-row border-t border-[var(--line)] first:border-t-0 ${open ? "is-open" : ""}`}>
       <div
         onClick={onToggle}
         className="relative flex w-full cursor-pointer items-center gap-2.5 px-2.5 py-2.5 text-left select-none sm:gap-3 sm:px-3"
@@ -105,7 +105,7 @@ function SiteRow({
 
       <div className={`fold ${open ? "open" : ""}`}>
         <div className="fold-inner" inert={open ? undefined : true}>
-          <div className="mx-2.5 mb-2.5 space-y-3.5 border-t border-white/[0.06] px-1 pb-1 pt-2.5 sm:mx-3">
+          <div className="mx-2.5 mb-2.5 space-y-3.5 border-t border-[var(--line)] px-1 pb-1 pt-2.5 sm:mx-3">
             <p className="font-sans text-[11px] leading-relaxed text-muted">{site.line}</p>
           </div>
         </div>

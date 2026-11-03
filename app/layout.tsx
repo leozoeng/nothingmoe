@@ -47,6 +47,7 @@ export const metadata: Metadata = {
     "animex",
     "anilight",
     "anikura",
+    "nekomiru",
     "yumezone",
     "nekowatch",
     "index",

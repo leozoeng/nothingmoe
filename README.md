@@ -12,8 +12,9 @@ That shady corner of the internet with anime sites that are modern, clean, immer
 2. [animex.one](https://animex.one)
 3. [anilight.live](https://anilight.live)
 4. [anikura.club](https://anikura.club)
-5. [yumezone.live](https://yumezone.live/home)
-6. [nekowatch.xyz](https://nekowatch.xyz)
+5. [nekomiru.com](https://nekomiru.com)
+6. [yumezone.live](https://yumezone.live/home)
+7. [nekowatch.xyz](https://nekowatch.xyz)
 
 Add the next one in `lib/sites.ts`.
 
