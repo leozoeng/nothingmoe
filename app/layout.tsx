@@ -50,6 +50,7 @@ export const metadata: Metadata = {
     "nekomiru",
     "yumezone",
     "nekowatch",
+    "anigato",
     "index",
   ],
   authors: [{ name: "NothingMoe", url: "https://nothingmoe.com" }],

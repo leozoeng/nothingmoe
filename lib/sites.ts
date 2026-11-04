@@ -328,6 +328,45 @@ export const SEED_SITES: Site[] = [
     ],
     seed: { ui: 91, ux: 86, catalog: 74, features: 80 },
   },
+  {
+    slug: "anigato",
+    name: "AniGato",
+    domain: "anigato.lol",
+    href: "https://anigato.lol",
+    discord: "https://discord.gg/J6hKw8SRYK",
+    icon: "/sites/anigato.png",
+    category: "japanese",
+    reason: "fast + multi-server",
+    line: "AniGato streams anime, movies and TV series online in HD with a fast custom player, multi-server failover, AniList sync, and zero ads.",
+    started: "2026",
+    registeredDate: "2026-09-16",
+    hostingType: "self-hosted",
+    catalogSize: {
+      value: "~5,000+ titles",
+      sub: "Anime, movies & TV series",
+    },
+    adExperience: {
+      value: "Zero Ads",
+      sub: "Ad-free playback with no popunders or redirects",
+      level: "zero-ads",
+    },
+    subtitles: {
+      value: "Multi-Language Softsubs",
+      sub: "Subtitles in dozens of languages",
+    },
+    audio: {
+      value: "Sub & Dub",
+      sub: "Original Japanese audio & English dubs",
+    },
+    featureList: [
+      "Zero ads",
+      "Multi-server failover",
+      "Watch together",
+      "AniList sync",
+      "Movies & TV series",
+    ],
+    seed: { ui: 89, ux: 85, catalog: 76, features: 82 },
+  },
 ];
 
 export function getDomainAge(registeredDate?: string): { age: string; date: string } | null {

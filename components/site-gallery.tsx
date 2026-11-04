@@ -43,6 +43,11 @@ const SITE_GALLERY: Record<string, GalleryItem[]> = {
     { src: "/screenshots/nekowatch/02-anime.jpg", title: "Player & Seasons" },
     { src: "/screenshots/nekowatch/03-watch.jpg", title: "Trending Shows" },
   ],
+  anigato: [
+    { src: "/screenshots/anigato/01-home.jpg", title: "Home & Trending" },
+    { src: "/screenshots/anigato/02-anime.jpg", title: "Catalog & Schedule" },
+    { src: "/screenshots/anigato/03-watch.jpg", title: "Video Player" },
+  ],
 };
 
 export function SiteGallery({ slug, name }: { slug: string; name: string }) {

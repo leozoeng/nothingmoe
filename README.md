@@ -15,6 +15,7 @@ That shady corner of the internet with anime sites that are modern, clean, immer
 5. [nekomiru.com](https://nekomiru.com)
 6. [yumezone.live](https://yumezone.live/home)
 7. [nekowatch.xyz](https://nekowatch.xyz)
+8. [anigato.lol](https://anigato.lol)
 
 Add the next one in `lib/sites.ts`.
 
